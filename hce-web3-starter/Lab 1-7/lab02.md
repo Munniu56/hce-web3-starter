@@ -1,6 +1,6 @@
 # BẰNG CHỨNG NỘP BÀI THỰC HÀNH - LAB 2
 
-**Môn học:** Kinh tế số / Web3 Starter  
+**Môn học:** TDT&HDTM / Web3 Starter  
 **Chủ đề:** LAB 2 — Ví và Giao dịch Đầu Tiên  
 **Thời lượng:** 75 phút · Hình thức: Cặp đôi  
 
