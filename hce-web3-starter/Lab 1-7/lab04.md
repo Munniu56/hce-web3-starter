@@ -1,6 +1,6 @@
 # BÁO CÁO THỰC HÀNH — LAB 4: NHẬN DIỆN HỢP ĐỒNG CÓ RỦI RO
 
-**Môn học:** Kinh tế số / Web3 Starter (ECO2432)  
+**Môn học:** TDT&HDTM / Web3 Starter (ECO2432)  
 **Chủ đề:** LAB 4 — Nhận diện hợp đồng có rủi ro  
 **Thời lượng:** 75 phút · **Hình thức:** Cá nhân / Nhóm 2 người  
 **Sản phẩm nộp:** `lab04.md` + mục ghi trong `AI_JOURNAL.md`  
@@ -12,7 +12,7 @@
 - **Mã sinh viên:** 23K4300023
 - **Lớp:** K57 - Kinh te so
 - **Địa chỉ ví cá nhân:** `0x5856B2C7e636d7A0b1FE25004eF9D6D158BE8B01`
-- **Tệp mã nguồn thẩm định:** [`contracts/lab04/ClubTokens.sol`](file:///d:/Antigravity%20IDE/hce-web3-starter/hce-web3-starter/contracts/lab04/ClubTokens.sol)
+
 
 ---
 
