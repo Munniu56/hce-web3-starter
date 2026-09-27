@@ -1,6 +1,6 @@
 # BÁO CÁO GIÁM ĐỊNH ON-CHAIN — FORENSICS.MD (LAB 3)
 
-**Môn học:** Kinh tế số / Web3 Starter (ECO2432)  
+**Môn học:** TDT&HDTM / Web3 Starter (ECO2432)  
 **Chủ đề:** LAB 3 — Đọc Giao Dịch và Hợp Đồng trên Etherscan  
 **Thời lượng:** 75 phút · **Hình thức:** Cá nhân  
 **Sản phẩm nộp:** `forensics.md`  
