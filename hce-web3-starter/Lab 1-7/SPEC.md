@@ -1,6 +1,6 @@
 # BÁO CÁO THỰC HÀNH — LAB 5: VIẾT ĐẶC TẢ CHO CÔNG CỤ PHÂN TÍCH DÒNG TIỀN
 
-**Môn học:** Kinh tế số / Web3 Starter (ECO2432)  
+**Môn học:** TDT&HDTM / Web3 Starter (ECO2432)  
 **Chủ đề:** LAB 5 — Viết đặc tả cho công cụ phân tích dòng tiền  
 **Thời lượng:** 75 phút · **Hình thức:** Nhóm 2 người · **Quy tắc:** Không viết mã nguồn trong buổi này  
 **Sản phẩm nộp quy định:** `SPEC.md` + Nhận xét của nhóm bạn  
