@@ -32,7 +32,7 @@
 ---
 
 ### Sản phẩm 3: Địa chỉ ví MetaMask (Mạng Sepolia Testnet)
-- **Địa chỉ ví:** `0x5856B2C7e636d7A0b1FE25004eF9D6D158BE8B01`, `0x82d022a704706B2f144863D619D7418F8a0f19A7`
+- **Địa chỉ ví:** `0x82d022a704706B2f144863D619D7418F8a0f19A7`
 
 ---
 

@@ -11,7 +11,7 @@
 - **Mã sinh viên:** 23K4300023
 - **Lớp:** K57 - Kinh te so
 - **Địa chỉ ví cá nhân (Ví gửi - Sinh viên):** `0x5856B2C7e636d7A0b1FE25004eF9D6D158BE8B01`
-- **Địa chỉ ví bạn ghép cặp (Ví nhận - Bạn cùng thực hành):** `0x82d022a704706B2f144863D619D7418F8a0f19A7`
+- **Địa chỉ ví bạn ghép cặp (Ví nhận - Bạn cùng thực hành):** `0x36Fd4887e9d1ecA4Ae5062A745cc2c6182B77060`
 - **Mạng thử nghiệm (Network):** Ethereum Sepolia Testnet
 
 ---
@@ -21,7 +21,7 @@
 | Trường | Giao dịch thành công (Bước 1) | Giao dịch thất bại (Bước 2) |
 | :--- | :--- | :--- |
 | **Mã băm giao dịch (Tx Hash)** | [`0x199e95f10417bb93a1b81ddad2450e0ac4104af985f7a09910eb7506a1cf98a3`](https://sepolia.etherscan.io/tx/0x199e95f10417bb93a1b81ddad2450e0ac4104af985f7a09910eb7506a1cf98a3) | [`0x21916a7ed947234caffd6fac19105cfa9ca7d6dcbe309c0d7d2419a34277cde7`](https://sepolia.etherscan.io/tx/0x21916a7ed947234caffd6fac19105cfa9ca7d6dcbe309c0d7d2419a34277cde7) |
-| **Số tiền chuyển** | `0.01 Sepolia ETH` *(hoặc chuyển thử nghiệm nội bộ cặp ví)* | `1.0 Sepolia ETH` *(Thử nghiệm chuyển không chừa đủ gas / lỗi hợp đồng)* |
+| **Số tiền chuyển** | `0.01 Sepolia ETH` *(chuyển thử nghiệm thành công sang ví bạn)* | `1.0 Sepolia ETH` *(Thử nghiệm chuyển không chừa đủ gas / lỗi hợp đồng)* |
 | **Phí giao dịch thực trả** | `0.00005393 ETH` (21,000 Gas × 2.568 Gwei) | `0.00005336 ETH` (21,228 Gas × 2.513 Gwei) |
 | **Trạng thái** | **Confirmed** (Thành công / Success) | **Failed / Reverted** (Thất bại trên chuỗi) |
 | **Nguyên nhân (nếu thất bại)** | *Không có* (Giao dịch hợp lệ, trạng thái chuyển từ Pending sang Confirmed thành công). | Giao dịch bị revert/thất bại trong quá trình thực thi trên blockchain Sepolia. Dù thất bại, tài nguyên mạng vẫn tiêu tốn nên người gửi vẫn phải trả phí gas `0.00005336 ETH`. |
@@ -31,8 +31,8 @@
 ## 3. Phân tích chi tiết quá trình thực hành
 
 ### Bước 1 — Giao dịch thành công
-- **Quy trình:** Ghép cặp hai sinh viên ngồi cạnh nhau, sao chép và đối chiếu địa chỉ ví `0x82d022a704706B2f144863D619D7418F8a0f19A7`.
-- Thực hiện chuyển khoản trên MetaMask mạng Sepolia.
+- **Quy trình:** Ghép cặp hai sinh viên ngồi cạnh nhau, sao chép và đối chiếu cẩn thận địa chỉ ví `0x36Fd4887e9d1ecA4Ae5062A745cc2c6182B77060`.
+- Thực hiện chuyển khoản `0.01 Sepolia ETH` trên ví MetaMask (mạng Sepolia Testnet).
 - Trạng thái giao dịch được theo dõi trực tiếp từ **Pending** (chờ xác thực trong mempool) sang **Confirmed** (đã được validator đóng gói vào block).
 - Mã băm giao dịch (Transaction Hash) được ghi nhận thành công và hiển thị minh bạch trên Sepolia Etherscan Explorer.
 
@@ -41,8 +41,8 @@
 ### Bước 2 — Giao dịch thất bại có chủ đích (Phân tích 2 tình huống)
 
 #### Tình huống A — Địa chỉ sai (Sai mã kiểm tra Checksum EIP-55):
-- **Thử nghiệm:** Thay đổi 1 ký tự trong địa chỉ ví người nhận (ví dụ thay đổi chữ hoa/chữ thường hoặc ký tự hex).
-- **Kết quả:** MetaMask phát hiện lỗi ngay tại giao diện người dùng (Client-side validation) và hiển thị cảnh báo *"Invalid recipient address"* hoặc sai checksum, vô hiệu hóa nút gửi. Giao dịch không thể phát sóng (broadcast) lên blockchain nên không sinh ra mã băm và không mất phí gas.
+- **Thử nghiệm:** Thay đổi 1 ký tự trong địa chỉ ví người nhận `0x36Fd4887e9d1ecA4Ae5062A745cc2c6182B77060` (ví dụ sửa thành `0x36Fe4887e9d1ecA4Ae5062A745cc2c6182B77060` hoặc thay đổi cấu trúc hoa/thường phá vỡ mã băm checksum).
+- **Kết quả:** MetaMask phát hiện lỗi ngay tại giao diện người dùng (Client-side validation) và hiển thị cảnh báo *"Invalid recipient address"* hoặc lỗi sai checksum, vô hiệu hóa nút gửi. Giao dịch không thể phát sóng (broadcast) lên blockchain nên không sinh ra mã băm và không mất phí gas.
 - **Bài học rút ra:** Địa chỉ ví Ethereum có cơ chế tự kiểm tra lỗi gõ nhầm (EIP-55 checksum), nhưng **hoàn toàn không thể kiểm tra được địa chỉ đó có thuộc về đúng người nhận mà bạn muốn gửi hay không**.
 
 #### Tình huống B — Không đủ phí hoặc giao dịch thất bại trên chuỗi (On-chain Failure):
