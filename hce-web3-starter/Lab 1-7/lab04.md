@@ -11,7 +11,8 @@
 - **Họ và tên:** Ngo Thi Thuy Van
 - **Mã sinh viên:** 23K4300023
 - **Lớp:** K57 - Kinh te so
-- **Địa chỉ ví cá nhân:** `0x5856B2C7e636d7A0b1FE25004eF9D6D158BE8B01`
+- **Địa chỉ ví cá nhân:** `0x82d022a704706B2f144863D619D7418F8a0f19A7`
+- **Địa chỉ ví bạn ghép cặp:** `0x2e4216e1BCA81d308b25adaD6ef5Ea92E2e42F8c`
 
 
 ---
