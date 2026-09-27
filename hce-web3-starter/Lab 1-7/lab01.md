@@ -1,5 +1,12 @@
 # BẰNG CHỨNG NỘP BÀI THỰC HÀNH - LAB 1
 
+**Môn học:** TDT&HDTM / Web3 Starter  
+**Chủ đề:** LAB 1 - Chuẩn bị môi trường 
+**Thời lượng:** 75 phút · **Hình thức:** Cá nhân 
+
+---
+
+
 ## 1. Thông tin chung
 - **Họ và tên:** Ngo Thi Thuy Van
 - **Mã sinh viên:** 23K4300023
