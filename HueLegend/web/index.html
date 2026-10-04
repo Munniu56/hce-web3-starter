@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HueLegend — Truy Xuất Nguồn Gốc Đặc Sản Cố Đô Trên Blockchain</title>
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display mang nét Cố Đô hoàng gia -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- QRCode.js de sinh ma QR dong -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Ethers.js v6 de tuong tac Web3 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  
+  <style>
+    :root {
+      --hue-purple-deep: #19092c;
+      --hue-purple-card: rgba(35, 14, 61, 0.75);
+      --hue-purple-accent: #6b21a8;
+      --hue-purple-light: #9333ea;
+      --hue-gold: #f59e0b;
+      --hue-gold-light: #fbbf24;
+      --hue-gold-royal: #eab308;
+      --hue-lotus: #ec4899;
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --bg-gradient: radial-gradient(circle at 10% 20%, #2e0854 0%, #150524 50%, #0d0216 100%);
+      --border-glass: rgba(245, 158, 11, 0.25);
+      --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(147, 51, 234, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.6;
+      background-attachment: fixed;
+    }
+
+    /* Ambient Glow Background Effect */
+    .ambient-glow {
+      position: fixed;
+      top: -100px;
+      right: -100px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(234, 179, 8, 0.15) 0%, transparent 70%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-glow-2 {
+      position: fixed;
+      bottom: -100px;
+      left: -100px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(147, 51, 234, 0.2) 0%, transparent 70%);
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(25, 9, 44, 0.85);
+      border-bottom: 1px solid var(--border-glass);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--hue-gold) 0%, var(--hue-purple-accent) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    }
+
+    .brand-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 20%, var(--hue-gold-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-sub {
+      font-size: 0.75rem;
+      color: var(--hue-gold);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .badge-network {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--hue-gold-light);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-network::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .btn-connect {
+      background: linear-gradient(135deg, #d97706, #f59e0b);
+      color: #1a0826;
+      border: none;
+      padding: 0.55rem 1.25rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-connect:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Hero Banner */
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(147, 51, 234, 0.25);
+      border: 1px solid rgba(147, 51, 234, 0.4);
+      color: #e9d5ff;
+      padding: 0.35rem 1.2rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      letter-spacing: 0.5px;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(180deg, #ffffff 0%, #fef08a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      max-width: 680px;
+      margin: 0 auto;
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Tabs Navigation */
+    .tabs-nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: rgba(30, 10, 54, 0.7);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      color: var(--text-muted);
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn:hover {
+      background: rgba(60, 20, 100, 0.6);
+      color: #ffffff;
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(147, 51, 234, 0.4), rgba(245, 158, 11, 0.3));
+      border-color: var(--hue-gold);
+      color: #ffffff;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+    }
+
+    /* Main Tab Content Panels */
+    .tab-pane {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--hue-purple-card);
+      border: 1px solid var(--border-glass);
+      border-radius: 20px;
+      padding: 2.2rem;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      margin-bottom: 2rem;
+    }
+
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--hue-gold-light);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.8rem;
+    }
+
+    /* Forms */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input, select, textarea {
+      background: rgba(18, 5, 32, 0.8);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: all 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--hue-gold);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+      background: rgba(28, 8, 48, 0.9);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #170524;
+      border: none;
+      border-radius: 12px;
+      padding: 0.9rem 1.8rem;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+      margin-top: 1rem;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.55);
+    }
+
+    .btn-fraud-demo {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px dashed rgba(239, 68, 68, 0.5);
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-left: 10px;
+    }
+
+    .btn-fraud-demo:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* Result Box & QR Box */
+    .result-box {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: rgba(16, 5, 29, 0.7);
+      border-radius: 16px;
+      border: 1px solid var(--border-glass);
+      display: none;
+    }
+
+    .qr-container {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .qr-code-wrapper {
+      background: #ffffff;
+      padding: 14px;
+      border-radius: 14px;
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.3);
+      display: inline-block;
+    }
+
+    /* Timeline Section for Checkpoint History */
+    .timeline {
+      position: relative;
+      margin: 2.5rem 0 1.5rem 1.5rem;
+      padding-left: 2rem;
+      border-left: 2px dashed rgba(245, 158, 11, 0.35);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 2rem;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: -2.75rem;
+      top: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--hue-purple-deep);
+      border: 3px solid var(--hue-gold);
+      box-shadow: 0 0 12px var(--hue-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timeline-content {
+      background: rgba(28, 10, 50, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .role-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .role-producer { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .role-logistics { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .role-retailer { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .role-inspector { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); }
+
+    .timeline-time {
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    .timeline-action {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.4rem;
+    }
+
+    .timeline-location {
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 0.5rem;
+    }
+
+    .timeline-footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .hash-link {
+      color: var(--hue-gold-light);
+      text-decoration: none;
+    }
+
+    .hash-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Sample batch chips */
+    .sample-chips {
+      display: flex;
+      gap: 10px;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--hue-gold-light);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip:hover {
+      background: rgba(245, 158, 11, 0.25);
+      border-color: var(--hue-gold);
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      background: #18092a;
+      color: #ffffff;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      border-left: 4px solid var(--hue-gold);
+      display: none;
+      z-index: 1000;
+      max-width: 420px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    footer {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      border-top: 1px solid rgba(245, 158, 11, 0.15);
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">🏮</div>
+      <div>
+        <div class="brand-title">HueLegend</div>
+        <div class="brand-sub">Hệ Thống Truy Xuất Đặc Sản Huế Web3</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="badge-network">Ethereum Sepolia</div>
+      <button class="btn-connect" id="connectBtn" onclick="toggleWallet()">Kết Nối Ví Web3</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Hero Banner -->
+    <div class="hero">
+      <div class="hero-badge">Đề tài tốt nghiệp & nghiên cứu học phần ECO2432</div>
+      <h1>Bảo Chứng Hương Vị Cố Đô Trên Chuỗi Khối</h1>
+      <p>Giải pháp chống hàng giả mạo, bảo vệ danh tiếng các làng nghề đặc sản Huế (Mè xửng, Tôm chua, Trà sen, Dầu tràm) với lịch sử chuỗi cung ứng bất biến.</p>
+    </div>
+
+    <!-- Navigation Tabs: The 3 Core Workflow Steps -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('create')">
+        <span>📦</span> 1. Khởi Tạo Lô Đặc Sản (Cơ sở)
+      </button>
+      <button class="tab-btn" onclick="switchTab('checkpoint')">
+        <span>🚚</span> 2. Thêm Chặng Theo Đúng Vai
+      </button>
+      <button class="tab-btn" onclick="switchTab('lookup')">
+        <span>🔍</span> 3. Quét QR & Xem Lịch Sử
+      </button>
+    </div>
+
+    <!-- ================= TAB 1: TAO LO HANG (PRODUCER) ================= -->
+    <div id="tab-create" class="tab-pane active">
+      <div class="card">
+        <div class="card-title">
+          <span>📦</span> Khởi Tạo Lô Hàng Mới (Dành cho Cơ Sở Sản Xuất)
+        </div>
+        <div class="card-desc">
+          Chỉ các cơ sở làng nghề được cấp quyền <code>ROLE_PRODUCER</code> mới có thể đưa lô đặc sản lên Smart Contract.
+        </div>
+
+        <form id="createBatchForm" onsubmit="handleCreateBatch(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="batchCode">Mã Lô Hàng (Định danh độc nhất):</label>
+              <input type="text" id="batchCode" required value="HL-MEXUNG-2026-001" placeholder="Ví dụ: HL-MEXUNG-2026-001">
+            </div>
+
+            <div class="form-group">
+              <label for="productSelect">Tên Đặc Sản Huế:</label>
+              <select id="productSelect" onchange="updateProductDetails(this.value)">
+                <option value="Mè xửng Thiên Hương Thượng Hạng">Mè xửng Thiên Hương Thượng Hạng (Phú Hậu)</option>
+                <option value="Tôm chua Trọng Tín Đậm Vị Cố Đô">Tôm chua Trọng Tín Đậm Vị Cố Đô (Đặng Tất)</option>
+                <option value="Trà Cung Đình Đức Phượng 18 Vị">Trà Cung Đình Đức Phượng 18 Vị (Phan Chu Trinh)</option>
+                <option value="Tinh Dầu Tràm Cung Đình Huế">Tinh Dầu Tràm Cung Đình Huế (Lộc Thủy, Phú Lộc)</option>
+                <option value="Nón Bài Thơ Tây Hồ">Nón Bài Thơ Làng Tây Hồ (Phú Hồ, Phú Vang)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="originInput">Vùng Nguyên Liệu / Địa Chỉ Xưởng:</label>
+              <input type="text" id="originInput" required value="20 Chi Lăng, Phường Phú Hậu, TP Huế">
+            </div>
+
+            <div class="form-group">
+              <label for="standardInput">Tiêu Chuẩn Chất Lượng / OCOP:</label>
+              <input type="text" id="standardInput" value="Chứng nhận OCOP 4 Sao Tỉnh Thừa Thiên Huế">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="metadataInput">Chứng từ & Hình ảnh (IPFS Hash / URL):</label>
+              <input type="text" id="metadataInput" value="ipfs://QmThienHuongMeXungCertification2026">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary">
+            <span>✨</span> Tạo Lô Hàng On-chain & Sinh Mã QR
+          </button>
+        </form>
+
+        <!-- Result Box with QR Code -->
+        <div id="createResultBox" class="result-box">
+          <h3 style="color: var(--hue-gold-light); margin-bottom: 0.5rem;">🎉 Khởi Tạo Lô Hàng Thành Công Trên Blockchain!</h3>
+          <p style="font-size: 0.9rem; color: #cbd5e1;">Lô hàng đã được ghi nhận vào hợp đồng thông minh <code>ProjectCore.sol</code> với Chặng 0 (Origin Checkpoint).</p>
+          
+          <div class="qr-container">
+            <div class="qr-code-wrapper" id="qrContainer"></div>
+            <div>
+              <p><strong>Mã Lô:</strong> <span id="resBatchCode" style="color: var(--hue-gold);"></span></p>
+              <p><strong>Sản Phẩm:</strong> <span id="resProductName"></span></p>
+              <p><strong>Ví Cơ Sở Ký Xác Thực:</strong> <code id="resProducerAddr">0x82d022a704706B2f144863D619D7418F8a0f19A7</code></p>
+              <p><strong>Mã Băm Giao Dịch (TxHash):</strong> <a href="#" id="resTxHash" class="hash-link" target="_blank"></a></p>
+              <button class="btn-primary" style="margin-top: 0.75rem; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="copyQRLink()">
+                📋 Sao Chép Liên Kết Quét QR
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: THEM CHANG THEO DUNG VAI ================= -->
+    <div id="tab-checkpoint" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span>🚚</span> Cập Nhật Chặng Hành Trình (Kiểm Tra Phân Quyền Đúng Vai)
+        </div>
+        <div class="card-desc">
+          Mỗi chặng (kiểm định, vận chuyển, nhập kho bán lẻ) chỉ được phép ghi nhận khi ví gửi giao dịch sở hữu đúng vai trò tương ứng.
+        </div>
+
+        <form id="addCheckpointForm" onsubmit="handleAddCheckpoint(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="cpBatchCode">Mã Lô Hàng Cần Cập Nhật:</label>
+              <input type="text" id="cpBatchCode" required value="HL-MEXUNG-2026-001">
+            </div>
+
+            <div class="form-group">
+              <label for="cpRoleSelect">Vai Trò Đang Thao Tác:</label>
+              <select id="cpRoleSelect" onchange="suggestCheckpointActions(this.value)">
+                <option value="ROLE_LOGISTICS">Đơn vị Vận chuyển (ROLE_LOGISTICS)</option>
+                <option value="ROLE_INSPECTOR">Cơ quan Kiểm định OCOP (ROLE_INSPECTOR)</option>
+                <option value="ROLE_RETAILER">Đại lý / Điểm bán lẻ (ROLE_RETAILER)</option>
+                <option value="ROLE_PRODUCER">Cơ sở sản xuất (ROLE_PRODUCER)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="cpLocation">Địa Điểm Thực Hiện Chặng:</label>
+              <input type="text" id="cpLocation" required value="Kho Trung Chuyển Ga Huế, Phường Đúc, TP Huế">
+            </div>
+
+            <div class="form-group">
+              <label for="cpAction">Nội Dung Hành Động / Kiểm Tra:</label>
+              <input type="text" id="cpAction" required value="Niêm phong thùng chống ẩm, xuất kho tàu hỏa đi Hà Nội">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="cpUri">Ghi chú bổ sung / Chứng từ vận đơn (URL/IPFS):</label>
+              <input type="text" id="cpUri" value="ipfs://QmHueRailwaysWaybill2026X01">
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 1rem; flex-wrap: wrap;">
+            <button type="submit" class="btn-primary">
+              <span>✍️</span> Ký Giao Dịch & Thêm Chặng Vào Chuỗi Khối
+            </button>
+            <button type="button" class="btn-fraud-demo" onclick="demoFraudulentAttempt()">
+              ⚠️ Thử Nghiệm Gian Lận (Mạo Danh Vai Trò Bị Chặn)
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= TAB 3: QUET QR & TRA CUU LICH SU ================= -->
+    <div id="tab-lookup" class="tab-pane">
+      <div class="card">
+        <div class="card-title">
+          <span>🔍</span> Tra Cứu & Quét Mã QR Lô Hàng Đặc Sản
+        </div>
+        <div class="card-desc">
+          Khách hàng quét mã QR trên bao bì sản phẩm để xem toàn bộ lịch sử minh bạch bất biến, không thể bị tẩy xóa.
+        </div>
+
+        <div style="display: flex; gap: 10px; max-width: 600px; margin-bottom: 1rem;">
+          <input type="text" id="lookupCodeInput" placeholder="Nhập mã lô hàng (Ví dụ: HL-MEXUNG-2026-001)" value="HL-MEXUNG-2026-001" style="flex: 1;">
+          <button class="btn-primary" style="margin-top: 0; padding: 0.75rem 1.5rem;" onclick="performLookup()">
+            Tra Cứu
+          </button>
+        </div>
+
+        <div style="font-size: 0.85rem; color: #94a3b8;">Chọn nhanh các lô hàng mẫu để demo:</div>
+        <div class="sample-chips">
+          <div class="chip" onclick="quickSelectBatch('HL-MEXUNG-2026-001')">🏮 Mè xửng Thiên Hương (HL-MEXUNG-2026-001)</div>
+          <div class="chip" onclick="quickSelectBatch('HL-TOMCHUA-2026-008')">🦐 Tôm chua Trọng Tín (HL-TOMCHUA-2026-008)</div>
+          <div class="chip" onclick="quickSelectBatch('HL-TRACD-2026-015')">🍵 Trà Cung Đình Huế (HL-TRACD-2026-015)</div>
+        </div>
+
+        <!-- Lookup Result Detail Header -->
+        <div id="batchDetailHeader" class="result-box" style="display: block;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h2 id="lookupProductName" style="font-family: 'Playfair Display', serif; color: var(--hue-gold-light); font-size: 1.8rem;">
+                Mè xửng Thiên Hương Thượng Hạng
+              </h2>
+              <div style="margin-top: 4px; display: flex; align-items: center; gap: 10px;">
+                <span style="color: #cbd5e1; font-weight: 600;">Mã định danh: <span id="lookupBatchCode" style="color: var(--hue-gold);">HL-MEXUNG-2026-001</span></span>
+                <span id="lookupOcopBadge" class="badge-network" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+                  ✓ OCOP 4 Sao Đã Xác Thực
+                </span>
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 0.8rem; color: #94a3b8;">Khởi tạo ngày: <span id="lookupCreatedAt">04/10/2026 08:30:00</span></div>
+              <div style="font-size: 0.8rem; color: #94a3b8;">Cơ sở sản xuất: <code id="lookupProducer">0x82d0...19A7</code></div>
+            </div>
+          </div>
+
+          <!-- Timeline of Checkpoints -->
+          <div style="margin-top: 2rem;">
+            <h4 style="color: #ffffff; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+              <span>📜</span> Lịch Sử Chuỗi Cung Ứng Bất Biến (On-chain Timeline)
+            </h4>
+            <div class="timeline" id="timelineContainer">
+              <!-- Timeline items dynamically rendered here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Popup -->
+  <div id="toast" class="toast">
+    <div id="toastMessage">Thông báo giao dịch</div>
+  </div>
+
+  <footer>
+    <p>HueLegend — Nền tảng Truy xuất Nguồn gốc Đặc sản Huế bằng Hợp đồng thông minh Ethereum Sepolia.</p>
+    <p style="margin-top: 6px; font-size: 0.78rem; color: #64748b;">Học phần ECO2432 — Tiền điện tử & Hợp đồng thông minh | Đại học Kinh tế, Đại học Huế.</p>
+  </footer>
+
+  <script>
+    // ================= DỮ LIỆU MẪU BAN ĐẦU (DEMO DATABASE) =================
+    const DATABASE = {
+      "HL-MEXUNG-2026-001": {
+        batchCode: "HL-MEXUNG-2026-001",
+        productName: "Mè xửng Thiên Hương Thượng Hạng",
+        origin: "20 Chi Lăng, Phường Phú Hậu, TP Huế",
+        createdAt: "04/10/2026 08:15:20",
+        producer: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+        isVerified: true,
+        checkpoints: [
+          {
+            timestamp: "04/10/2026 08:15:20",
+            recorder: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+            role: "ROLE_PRODUCER",
+            location: "Xưởng Mè xửng Thiên Hương, Phú Hậu, Huế",
+            action: "Thu hoạch vừng mè trắng tuyển chọn, nấu mạch nha và đóng bánh nguyên bản",
+            txHash: "0x4a7e93f1bc0913982f126da3517865239e7fa10b91d6342c8845ef1a2e99f012",
+            metadataURI: "ipfs://QmThienHuongOriginHarvest001"
+          },
+          {
+            timestamp: "04/10/2026 11:30:45",
+            recorder: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            role: "ROLE_INSPECTOR",
+            location: "Chi cục Quản lý Chất lượng Nông Lâm Thủy sản TT Huế",
+            action: "Kiểm nghiệm vi sinh & an toàn vệ sinh thực phẩm, cấp tem OCOP 4 sao",
+            txHash: "0x8b321fa7c90823192f87a01bce239f81a7d65412e0984512cba12398fa452109",
+            metadataURI: "ipfs://QmOCOP4StarHueInspectionCertified"
+          },
+          {
+            timestamp: "04/10/2026 14:00:10",
+            recorder: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            role: "ROLE_LOGISTICS",
+            location: "Kho trung chuyển Ga Huế, Phường Đúc, TP Huế",
+            action: "Đóng kiện chống ẩm, bàn giao tàu Thống Nhất SE2 vận chuyển ra Bắc",
+            txHash: "0x12c49a08123fa98e451bca890123ef8912389abcde789123456789abcdef1234",
+            metadataURI: "ipfs://QmGaHueLogisticsSE2Manifest"
+          },
+          {
+            timestamp: "04/10/2026 17:45:00",
+            recorder: "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            role: "ROLE_RETAILER",
+            location: "Cửa hàng Đặc sản Huế Quà Cố Đô, Hàng Bông, Hà Nội",
+            action: "Tiếp nhận lô hàng, kiểm tra tem niêm phong nguyên vẹn và lên kệ bán lẻ",
+            txHash: "0x78901234abcdef1234567890abcdef1234567890abcdef1234567890abcdef12",
+            metadataURI: "ipfs://QmRetailerReceiptStore01"
+          }
+        ]
+      },
+      "HL-TOMCHUA-2026-008": {
+        batchCode: "HL-TOMCHUA-2026-008",
+        productName: "Tôm chua Trọng Tín Đậm Vị Cố Đô",
+        origin: "21 Đặng Tất, Phường An Hòa, TP Huế",
+        createdAt: "03/10/2026 09:00:00",
+        producer: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+        isVerified: true,
+        checkpoints: [
+          {
+            timestamp: "03/10/2026 09:00:00",
+            recorder: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+            role: "ROLE_PRODUCER",
+            location: "Cơ sở Tôm chua Trọng Tín, Đặng Tất, Huế",
+            action: "Thu gom tôm đất tươi phá Tam Giang, ngâm ủ rượu trắng và ớt bột Huế",
+            txHash: "0xbb7894a0123fa98e451bca890123ef8912389abcde789123456789abcdef1111",
+            metadataURI: "ipfs://QmTomChuaTamGiangBatch008"
+          },
+          {
+            timestamp: "03/10/2026 15:30:00",
+            recorder: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            role: "ROLE_LOGISTICS",
+            location: "Cảng Hàng Không Quốc Tế Phú Bài, Thừa Thiên Huế",
+            action: "Vận chuyển hàng không lạnh đến TP. Hồ Chí Minh",
+            txHash: "0xcc7894a0123fa98e451bca890123ef8912389abcde789123456789abcdef2222",
+            metadataURI: "ipfs://QmPhuBaiAirCargoManifest"
+          }
+        ]
+      }
+    };
+
+    // ================= CHUYEN DOI TAB GIAO DIEN =================
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+      if (tabKey === 'create') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('tab-create').classList.add('active');
+      } else if (tabKey === 'checkpoint') {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('tab-checkpoint').classList.add('active');
+      } else if (tabKey === 'lookup') {
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.getElementById('tab-lookup').classList.add('active');
+        performLookup();
+      }
+    }
+
+    // ================= KET NOI VI WEB3 (METAMASK) =================
+    let userAddress = null;
+    async function toggleWallet() {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          userAddress = accounts[0];
+          document.getElementById('connectBtn').innerText = userAddress.substring(0, 6) + '...' + userAddress.substring(38);
+          showToast("Đã kết nối ví Web3: " + userAddress, "success");
+        } catch (err) {
+          showToast("Người dùng đã hủy kết nối ví", "error");
+        }
+      } else {
+        // Che do gia lap
+        userAddress = "0x82d022a704706B2f144863D619D7418F8a0f19A7";
+        document.getElementById('connectBtn').innerText = "0x82d0...19A7 (Demo)";
+        showToast("Chế độ Demo: Đã kết nối ví mặc định Sepolia 0x82d0...19A7", "success");
+      }
+    }
+
+    // ================= 1. XU LY TAO LO HANG & SINH MA QR =================
+    function handleCreateBatch(e) {
+      e.preventDefault();
+      const code = document.getElementById('batchCode').value.trim();
+      const name = document.getElementById('productSelect').value;
+      const origin = document.getElementById('originInput').value.trim();
+      const uri = document.getElementById('metadataInput').value.trim();
+
+      if (DATABASE[code]) {
+        showToast("Mã lô hàng này đã tồn tại trên Blockchain! Hãy chọn mã khác.", "error");
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = now.toLocaleDateString('vi-VN') + " " + now.toLocaleTimeString('vi-VN');
+      const mockTx = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+
+      // Luu vao database on-chain mo phong
+      DATABASE[code] = {
+        batchCode: code,
+        productName: name,
+        origin: origin,
+        createdAt: timeStr,
+        producer: userAddress || "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+        isVerified: false,
+        checkpoints: [
+          {
+            timestamp: timeStr,
+            recorder: userAddress || "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+            role: "ROLE_PRODUCER",
+            location: origin,
+            action: "Khởi tạo lô đặc sản tại cơ sở sản xuất",
+            txHash: mockTx,
+            metadataURI: uri
+          }
+        ]
+      };
+
+      // Sinh ma QR
+      const qrEl = document.getElementById('qrContainer');
+      qrEl.innerHTML = '';
+      const qrTargetUrl = window.location.origin + window.location.pathname + "?batch=" + encodeURIComponent(code);
+      new QRCode(qrEl, {
+        text: qrTargetUrl,
+        width: 140,
+        height: 140,
+        colorDark: "#19092c",
+        colorLight: "#ffffff"
+      });
+
+      // Cap nhat thong tin ket qua
+      document.getElementById('resBatchCode').innerText = code;
+      document.getElementById('resProductName').innerText = name;
+      document.getElementById('resTxHash').innerText = mockTx.substring(0, 18) + "...";
+      document.getElementById('resTxHash').href = "https://sepolia.etherscan.io/tx/" + mockTx;
+      document.getElementById('createResultBox').style.display = 'block';
+
+      // Dong bo sang o tra cuu
+      document.getElementById('cpBatchCode').value = code;
+      document.getElementById('lookupCodeInput').value = code;
+
+      showToast("Khởi tạo lô hàng thành công! Mã QR đã được tạo.", "success");
+    }
+
+    // ================= 2. THEM CHANG BOI DUNG VAI =================
+    function handleAddCheckpoint(e) {
+      e.preventDefault();
+      const code = document.getElementById('cpBatchCode').value.trim();
+      const role = document.getElementById('cpRoleSelect').value;
+      const location = document.getElementById('cpLocation').value.trim();
+      const action = document.getElementById('cpAction').value.trim();
+      const uri = document.getElementById('cpUri').value.trim();
+
+      if (!DATABASE[code]) {
+        showToast("Lỗi: Không tìm thấy mã lô hàng " + code + " trên hệ thống!", "error");
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = now.toLocaleDateString('vi-VN') + " " + now.toLocaleTimeString('vi-VN');
+      const mockTx = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+
+      DATABASE[code].checkpoints.push({
+        timestamp: timeStr,
+        recorder: userAddress || "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+        role: role,
+        location: location,
+        action: action,
+        txHash: mockTx,
+        metadataURI: uri
+      });
+
+      if (role === "ROLE_INSPECTOR") {
+        DATABASE[code].isVerified = true;
+      }
+
+      showToast("Đã thêm chặng mới thành công bởi đúng vai trò " + role + "!", "success");
+
+      // Chuyen sang tab xem lich su de kiem tra timeline
+      setTimeout(() => {
+        document.getElementById('lookupCodeInput').value = code;
+        switchTab('lookup');
+      }, 700);
+    }
+
+    // Demo ca gian lan (Fraudulent Test Demo)
+    function demoFraudulentAttempt() {
+      const code = document.getElementById('cpBatchCode').value.trim();
+      const fakeAttacker = "0xAttackerFakeAddress999999999999999999999";
+      
+      showToast("⚠️ CẢNH BÁO BẢO MẬT: Ví " + fakeAttacker.substring(0, 10) + "... không có quyền ROLE_INSPECTOR! Giao dịch bị Revert với lỗi: UnauthorizedCaller.", "error");
+    }
+
+    // ================= 3. TRA CUU & HIEN THI LICH SU LÔ HANG =================
+    function performLookup() {
+      const code = document.getElementById('lookupCodeInput').value.trim();
+      const item = DATABASE[code];
+
+      if (!item) {
+        showToast("Không tìm thấy lô hàng với mã: " + code, "error");
+        return;
+      }
+
+      document.getElementById('lookupProductName').innerText = item.productName;
+      document.getElementById('lookupBatchCode').innerText = item.batchCode;
+      document.getElementById('lookupCreatedAt').innerText = item.createdAt;
+      document.getElementById('lookupProducer').innerText = item.producer.substring(0, 6) + "..." + item.producer.substring(38);
+
+      const ocopBadge = document.getElementById('lookupOcopBadge');
+      if (item.isVerified) {
+        ocopBadge.innerText = "✓ OCOP 4 Sao Đã Xác Thực";
+        ocopBadge.style.color = "#34d399";
+        ocopBadge.style.borderColor = "rgba(16, 185, 129, 0.4)";
+        ocopBadge.style.background = "rgba(16, 185, 129, 0.15)";
+      } else {
+        ocopBadge.innerText = "⏳ Đang Chờ Kiểm Định OCOP";
+        ocopBadge.style.color = "#fbbf24";
+        ocopBadge.style.borderColor = "rgba(245, 158, 11, 0.4)";
+        ocopBadge.style.background = "rgba(245, 158, 11, 0.15)";
+      }
+
+      // Render Timeline
+      const timelineEl = document.getElementById('timelineContainer');
+      timelineEl.innerHTML = '';
+
+      item.checkpoints.forEach((cp, idx) => {
+        let roleClass = "role-producer";
+        let roleNameStr = "Cơ sở sản xuất";
+
+        if (cp.role === "ROLE_LOGISTICS") {
+          roleClass = "role-logistics";
+          roleNameStr = "Đơn vị vận chuyển";
+        } else if (cp.role === "ROLE_INSPECTOR") {
+          roleClass = "role-inspector";
+          roleNameStr = "Kiểm định OCOP";
+        } else if (cp.role === "ROLE_RETAILER") {
+          roleClass = "role-retailer";
+          roleNameStr = "Điểm bán lẻ";
+        }
+
+        const itemHtml = `
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="role-tag ${roleClass}">Chặng ${idx}: ${roleNameStr}</span>
+                <span class="timeline-time">${cp.timestamp}</span>
+              </div>
+              <div class="timeline-action">${cp.action}</div>
+              <div class="timeline-location">📍 <strong>Địa điểm:</strong> ${cp.location}</div>
+              <div class="timeline-footer">
+                <div>Ví xác thực: <code>${cp.recorder.substring(0, 6)}...${cp.recorder.substring(cp.recorder.length - 4)}</code></div>
+                <div>TxHash: <a href="https://sepolia.etherscan.io/tx/${cp.txHash}" target="_blank" class="hash-link">${cp.txHash.substring(0, 14)}...</a></div>
+              </div>
+            </div>
+          </div>
+        `;
+        timelineEl.insertAdjacentHTML('beforeend', itemHtml);
+      });
+    }
+
+    function quickSelectBatch(code) {
+      document.getElementById('lookupCodeInput').value = code;
+      performLookup();
+    }
+
+    function updateProductDetails(val) {
+      if (val.includes("Mè xửng")) {
+        document.getElementById('originInput').value = "20 Chi Lăng, Phường Phú Hậu, TP Huế";
+      } else if (val.includes("Tôm chua")) {
+        document.getElementById('originInput').value = "21 Đặng Tất, Phường An Hòa, TP Huế";
+      } else if (val.includes("Trà Cung Đình")) {
+        document.getElementById('originInput').value = "24 Nguyễn Huệ, Phường Vĩnh Ninh, TP Huế";
+      } else if (val.includes("Dầu Tràm")) {
+        document.getElementById('originInput').value = "Làng nghề Dầu tràm Lộc Thủy, Huyện Phú Lộc, TT Huế";
+      } else if (val.includes("Nón")) {
+        document.getElementById('originInput').value = "Làng Nón Tây Hồ, Xã Phú Hồ, Huyện Phú Vang, TT Huế";
+      }
+    }
+
+    function suggestCheckpointActions(role) {
+      if (role === "ROLE_LOGISTICS") {
+        document.getElementById('cpLocation').value = "Kho Ga Huế, Phường Đúc, TP Huế";
+        document.getElementById('cpAction').value = "Đóng kiện bảo quản, xuất kho vận chuyển tàu hỏa đi Hà Nội";
+      } else if (role === "ROLE_INSPECTOR") {
+        document.getElementById('cpLocation').value = "Chi cục Quản lý Chất lượng Nông Lâm Thủy sản TT Huế";
+        document.getElementById('cpAction').value = "Kiểm nghiệm vi sinh và cấp giấy chứng nhận OCOP 4 sao";
+      } else if (role === "ROLE_RETAILER") {
+        document.getElementById('cpLocation').value = "Cửa hàng Đặc sản Huế Quà Cố Đô, Hàng Bông, Hà Nội";
+        document.getElementById('cpAction').value = "Nhập kho điểm bán lẻ, niêm yết sẵn sàng phục vụ khách mua";
+      } else if (role === "ROLE_PRODUCER") {
+        document.getElementById('cpLocation').value = "Xưởng sản xuất tại Huế";
+        document.getElementById('cpAction').value = "Hoàn thiện đóng gói màng co chống ẩm, dán tem QR";
+      }
+    }
+
+    function copyQRLink() {
+      const code = document.getElementById('resBatchCode').innerText;
+      const url = window.location.origin + window.location.pathname + "?batch=" + encodeURIComponent(code);
+      navigator.clipboard.writeText(url).then(() => {
+        showToast("Đã sao chép liên kết quét QR vào bộ nhớ tạm!", "success");
+      });
+    }
+
+    function showToast(msg, type) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMessage');
+      toastMsg.innerText = msg;
+      toast.style.borderLeftColor = type === 'error' ? '#ef4444' : '#f59e0b';
+      toast.style.display = 'block';
+
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 4000);
+    }
+
+    // Auto-check URL query parameters on load (e.g., ?batch=HL-MEXUNG-2026-001)
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const batchParam = urlParams.get('batch');
+      if (batchParam) {
+        document.getElementById('lookupCodeInput').value = batchParam;
+        switchTab('lookup');
+      } else {
+        performLookup();
+      }
+    });
+  </script>
+</body>
+</html>
