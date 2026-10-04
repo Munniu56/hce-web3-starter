@@ -6,7 +6,7 @@ Nhóm gồm 2 thành viên kiêm nhiệm 4 vai trò chính: **Đặc tả**, **H
 
 | Họ tên | Mã sinh viên | Vai chính Lab 8–11 | Vai chính Lab 12–15 |
 | :--- | :--- | :--- | :--- |
-| **Ngô Thị Thuỷ Vân** *(Trưởng nhóm)* | 23K4300023 | Hợp đồng & Kiểm thử | Đặc tả & Giao diện |
+| **Ngô Thị Thuỷ Vân** | 23K4300023 | Hợp đồng & Kiểm thử | Đặc tả & Giao diện |
 | **Ngô Quỳnh Trang** | 23K4300041 | Đặc tả & Giao diện | Hợp đồng & Kiểm thử |
 
 ---
