@@ -9,10 +9,9 @@
 
 | Thời lượng | Người trình bày | Nội dung trọng tâm | Slide / Màn hình hiển thị |
 | :--- | :--- | :--- | :--- |
-| **0:00 – 1:30** | **Thành viên 01** *(Lead)* | - Mở đầu & Nỗi đau thị trường: Đặc sản Huế bị làm giả, nhái nhãn mác tràn lan tại các điểm du lịch.<br>- Khách mua không phân biệt được thật giả; Cơ sở làng nghề uy tín bị tổn hại.<br>- Giới thiệu giải pháp: **HueLegend** — Truy xuất nguồn gốc bằng Smart Contract bất biến. | Slide 1 – 3: Vấn đề & Kiến trúc giải pháp |
-| **1:30 – 3:00** | **Thành viên 02** *(SC Dev)* | - Trình bày mô hình dữ liệu: Lô hàng (`Batch`) và Chặng (`Checkpoint`).<br>- Cơ chế phân quyền RBAC: Phân tách vai trò Cơ sở sản xuất, Đơn vị vận chuyển, Đại lý phân phối.<br>- Quy tắc an toàn: CEI, Custom Errors, phòng chống mạo danh chặng giả. | Slide 4 – 5 & Mã nguồn `ProjectCore.sol` trên Remix/IDE |
-| **3:00 – 5:30** | **Thành viên 03 & 04** *(Demo Lead)* | **Thực hiện Live Demo luồng 3 bước:**<br>1. *Tạo lô:* Kết nối ví cơ sở sản xuất, tạo lô "Mè xửng Thiên Hương #001", sinh mã QR.<br>2. *Thêm chặng:* Đơn vị vận chuyển xác nhận nhận hàng tại Ga Huế.<br>3. *Demo chống gian lận:* Ví kẻ xấu cố tình chèn chặng giả → Hệ thống từ chối giao dịch.<br>4. *Quét QR:* Dùng camera điện thoại quét mã QR hiển thị dòng thời gian minh bạch. | Trực tiếp trên giao diện DApp `web/index.html` và Etherscan Sepolia |
-| **5:30 – 6:30** | **Cả nhóm** | - Tổng kết kết quả đạt được qua các Lab (từ Lab 8 đến Lab 15).<br>- Định hướng mở rộng: Tích hợp cảm biến IoT và số hóa các làng nghề tôm chua, nón bài thơ.<br>- Cảm ơn và sẵn sàng trả lời phản biện của Giảng viên. | Slide kết & Bảng phân bổ đóng góp nhóm |
+| **0:00 – 2:30** | **Ngô Thị Thuỷ Vân** *(Trưởng nhóm)* | - Mở đầu & Vấn đề: Đặc sản Huế bị nhái nhãn mác, khách hàng mất niềm tin.<br>- Giới thiệu giải pháp Web3 HueLegend.<br>- Kiến trúc kỹ thuật, Smart Contract `ProjectCore.sol` & Demo bước 1 (Khởi tạo lô đặc sản). | Slide 1 – 4 & Thao tác DApp |
+| **2:30 – 5:30** | **Ngô Quỳnh Trang** | - Demo bước 2: Thêm chặng theo đúng vai (Logistics, Retailer, Inspector).<br>- Demo ca gian lận: Mạo danh vai trò bị chặn (`revert UnauthorizedCaller`).<br>- Demo bước 3: Quét mã QR bằng điện thoại xem Timeline minh bạch. | Trực tiếp trên giao diện `web/index.html` và Etherscan |
+| **5:30 – 6:30** | **Cả hai thành viên** | - Tổng kết tiến độ từ Lab 8 đến Lab 15.<br>- Định hướng mở rộng số hóa làng nghề Huế.<br>- Lắng nghe và trả lời câu hỏi phản biện của Giảng viên. | Slide kết thúc & Q&A |
 
 ---
 

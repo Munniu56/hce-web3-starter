@@ -2,14 +2,12 @@
 
 ## Thành viên và vai trò
 
-Nhóm gồm 4 thành viên đảm nhận 4 vai trò chính: **Đặc tả**, **Hợp đồng**, **Giao diện**, **Kiểm thử**. Các thành viên thực hiện luân chuyển (xoay) vai trò từ sau Lab 11 theo đúng quy định học phần:
+Nhóm gồm 2 thành viên kiêm nhiệm 4 vai trò chính: **Đặc tả**, **Hợp đồng**, **Giao diện**, **Kiểm thử**. Các thành viên thực hiện luân chuyển (xoay) vai trò từ sau Lab 11 theo đúng quy định học phần:
 
 | Họ tên | Mã sinh viên | Vai chính Lab 8–11 | Vai chính Lab 12–15 |
 | :--- | :--- | :--- | :--- |
-| **Ngô Thị Thuỷ Vân** *(Trưởng nhóm)* | 23K4300023 | Hợp đồng (Smart Contract) | Kiểm thử (QA & Security Audit) |
-| **Lê Thị Thảo Nhi** | 23K4300018 | Đặc tả (SPEC & BA Lead) | Giao diện (Frontend Web3 DApp) |
-| **Trần Văn Nhật Minh** | 23K4300015 | Giao diện (Frontend Web3 DApp) | Đặc tả (SPEC & Gate Review) |
-| **Nguyễn Hoàng Phúc** | 23K4300020 | Kiểm thử (Test Cases & Script) | Hợp đồng (Smart Contract Core) |
+| **Ngô Thị Thuỷ Vân** *(Trưởng nhóm)* | 23K4300023 | Hợp đồng & Kiểm thử | Đặc tả & Giao diện |
+| **Ngô Quỳnh Trang** | 23K4300041 | Đặc tả & Giao diện | Hợp đồng & Kiểm thử |
 
 ---
 

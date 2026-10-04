@@ -2,6 +2,9 @@
 
 - **Học phần:** Tiền điện tử & Hợp đồng thông minh (ECO2432)
 - **Tên dự án nhóm:** **HueLegend** — Truy xuất nguồn gốc đặc sản Huế trên Blockchain
+- **Thành viên nhóm (2 người):**
+  1. **Ngô Thị Thuỷ Vân** — MSV: `23K4300023` (Trưởng nhóm)
+  2. **Ngô Quỳnh Trang** — MSV: `23K4300041`
 - **Tiêu đề commit nộp bài:**
   ```bash
   lab-08: khoi tao codebase nhom va dac ta v0.1
