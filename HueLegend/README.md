@@ -37,6 +37,9 @@ HueLegend/
 ├── README.md               # Giới thiệu sản phẩm, chuẩn 4 câu hỏi đầu ra và hướng dẫn chạy
 ├── AGENTS.md               # Quy ước kỹ thuật và nguyên tắc sinh mã cho công cụ AI
 ├── lab08.md                # Tóm tắt thực hành Lab 8 và mẫu commit nộp bài
+├── lab09.md                # Tóm tắt thực hành Lab 9 (Két khóa thời gian & Gas profiling)
+├── lab10.md                # Tóm tắt thực hành Lab 10 (Audit mã nguồn AI & sửa 4 lỗi)
+├── lab11.md                # Tóm tắt thực hành Lab 11 (Cài quy tắc kinh tế & Test 100%)
 ├── docs/
 │   ├── PROJECT_PLAN.md     # Kế hoạch dự án, phân công vai trò (xoay vai) và mốc công việc
 │   ├── SPEC.md             # Đặc tả 4 quy tắc kiểm thử được (Ai làm gì, khi nào, giới hạn, lỗi)
@@ -44,11 +47,13 @@ HueLegend/
 │   ├── ECONOMIC_RULES.md   # 4 mục kinh tế: dòng tiền, chống lạm dụng, quản trị, người dùng thiệt
 │   └── PRESENTATION_PLAN.md# Kịch bản demo và phân công thuyết trình bảo vệ
 ├── contracts/
-│   ├── training/           # 4 bài mẫu học kỹ thuật cho Lab 9, 10, 13 (ClassPoint, TimeLockVault...)
+│   ├── training/           # 4 bài mẫu học kỹ thuật cho Lab 9, 10, 11, 13 (ClassPoint, TimeLockVault...)
 │   └── project/
 │       └── ProjectCore.sol # Hợp đồng thông minh cốt lõi của HueLegend (Solidity ^0.8.20, CEI)
 ├── test/
-│   └── ProjectCore.test.js # Bộ kiểm thử tự động (bao gồm ca kiểm thử gian lận TC-03)
+│   ├── ProjectCore.test.js # Bộ kiểm thử tự động (bao gồm ca kiểm thử gian lận TC-03)
+│   ├── ClassPoint.test.js  # Kiểm thử bài mẫu ClassPoint OpenZeppelin 5 (feeBps, maxHolding)
+│   └── economic_rules_test.py # Script kiểm thử tự động 7/7 ca kinh tế chuẩn AGENTS.md
 ├── web/
 │   └── index.html          # Giao diện Web3 DApp (Huế Royal Theme, sinh QR động & Timeline)
 └── evidence/
@@ -70,7 +75,7 @@ HueLegend/
 
 ### 3. Chạy ca kiểm thử tự động:
 ```bash
-npx hardhat test test/ProjectCore.test.js
+python HueLegend/test/economic_rules_test.py
 ```
 
 ---
@@ -82,3 +87,5 @@ npx hardhat test test/ProjectCore.test.js
 - **Mã commit nộp bài Lab 8:** `lab-08: khoi tao codebase nhom va dac ta v0.1`
 - **Mã commit nộp bài Lab 9:** `lab-09: contract loi bien dich duoc`
 - **Mã commit nộp bài Lab 10:** `lab-10: audit va sua loi project core`
+- **Mã commit nộp bài Lab 11:** `lab-11: cai quy tac kinh te va test`
+

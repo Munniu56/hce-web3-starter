@@ -1,4 +1,4 @@
-# SPEC — ĐẶC TẢ NGHIỆP VỤ HỆ THỐNG TRUY XUẤT ĐẶC SẢN HUẾ (HUELEGEND v0.2)
+# SPEC — ĐẶC TẢ NGHIỆP VỤ HỆ THỐNG TRUY XUẤT ĐẶC SẢN HUẾ (HUELEGEND v0.3)
 
 ## 1. Mục đích
 Hệ thống **HueLegend** ứng dụng công nghệ Blockchain (Ethereum Sepolia) nhằm minh bạch hóa toàn diện chuỗi cung ứng các đặc sản truyền thống xứ Huế (Mè xửng, Tôm chua, Trà Cung đình, Tinh dầu tràm, Nón bài thơ). Hệ thống cung cấp cơ chế lưu trữ lịch sử bất biến on-chain giúp bảo vệ uy tín các làng nghề OCOP và trao quyền cho người tiêu dùng tự kiểm chứng nguồn gốc sản phẩm qua mã QR.
@@ -11,6 +11,7 @@ Hệ thống **HueLegend** ứng dụng công nghệ Blockchain (Ethereum Sepoli
 - **Đại lý / Cửa hàng bán lẻ (`ROLE_RETAILER`):** Điểm bán quà lưu niệm, siêu thị đặc sản tại Huế, Hà Nội, TP.HCM.
 - **Cơ quan kiểm định (`ROLE_INSPECTOR`):** Chi cục Quản lý Chất lượng Nông Lâm Thủy sản TT Huế, Ban quản lý OCOP.
 - **Khách mua hàng (Người dùng phổ thông / Consumer):** Du khách, người tiêu dùng quét mã QR tra cứu miễn phí.
+- **Quỹ phát triển đặc sản OCOP Huế (`ecosystemFund`):** Địa chỉ ví chuyên biệt tiếp nhận phí tạo lô để bảo trì hạ tầng và tài trợ làng nghề.
 
 ---
 
@@ -21,7 +22,8 @@ Hệ thống **HueLegend** ứng dụng công nghệ Blockchain (Ethereum Sepoli
 - Tên đặc sản (`productName`): tên sản phẩm làng nghề được bảo hộ.
 - Vùng nguyên liệu (`origin`): địa danh xuất xứ nguyên liệu sạch tại Thừa Thiên Huế.
 - Thông tin chặng: địa điểm (`location`), hành động thực hiện (`action`), đường dẫn chứng từ kiểm định (`metadataURI`).
-- Tiền nạp ký quỹ bảo đảm uy tín làng nghề (`msg.value`).
+- Tiền nạp ký quỹ bảo đảm uy tín làng nghề (`msg.value` khi gọi `depositStake`).
+- Phí khởi tạo lô hàng bắt buộc (`msg.value >= batchCreationFee = 0.001 ETH` khi gọi `createBatch`).
 - Chữ ký xác thực của ví Web3 gửi giao dịch (`msg.sender`).
 
 ### 3.2. Dữ liệu đầu ra
@@ -29,19 +31,27 @@ Hệ thống **HueLegend** ứng dụng công nghệ Blockchain (Ethereum Sepoli
 - Mã phản hồi nhanh (QR Code) động liên kết trực tiếp đến trang tra cứu lô hàng.
 - Trạng thái kiểm định OCOP (`isVerified`: `true`/`false`).
 - Số dư tiền ký quỹ và thời gian mở khóa cọc của cơ sở sản xuất.
+- Sự kiện biên lai thu phí `BatchFeeCollected` và biến động số dư ví `ecosystemFund`.
 
 ---
 
 ## 4. Bốn quy tắc nghiệp vụ chuỗi cung ứng cốt lõi (Core Supply Chain Rules)
 
-### Quy tắc 1 (Khởi tạo lô đặc sản - Batch Creation)
-- **Ai được làm gì:** Chỉ địa chỉ ví được cấp quyền `ROLE_PRODUCER` (hoặc `owner`) mới được gọi hàm `createBatch`.
-- **Khi nào:** Khi sản phẩm hoàn thành chế biến tại xưởng và chuẩn bị đóng gói dán tem.
+### Quy tắc 1 (Khởi tạo lô đặc sản & Nộp phí tạo lô - Batch Creation & Economic Fee - Lab 11)
+- **Ai được làm gì:** Chỉ địa chỉ ví được cấp quyền `ROLE_PRODUCER` (hoặc `owner`) đã nộp đủ tiền cọc `MIN_STAKE_AMOUNT` (0.05 ETH) mới được gọi hàm `createBatch`.
+- **Khi nào:** Khi sản phẩm hoàn thành chế biến tại xưởng và chuẩn bị đóng gói dán tem truy xuất nguồn gốc.
+- **Ràng buộc kinh tế (Economic Rule):**
+  - Cơ sở sản xuất bắt buộc phải gửi kèm khoản phí `batchCreationFee = 0.001 ETH` trong giao dịch (`msg.value`).
+  - Toàn bộ khoản phí được hợp đồng tự động chuyển tiếp (auto-forward) sang ví Quỹ phát triển OCOP Huế (`ecosystemFund`) bằng lệnh `call{value: msg.value}("")` an toàn và phát sự kiện `BatchFeeCollected`.
+  - Hạn mức an toàn (Circuit Breaker): Quản trị viên (`owner`) chỉ được phép điều chỉnh mức phí tối đa `MAX_BATCH_FEE_LIMIT = 0.01 ETH`.
 - **Giới hạn bao nhiêu:** Mỗi mã lô (`batchCode`) là chuỗi không rỗng và chỉ được tạo duy nhất một lần trên toàn mạng lưới (`batchCode` không được trùng lặp).
 - **Lỗi thì sao:** 
   - Nếu không có quyền $\rightarrow$ Revert `UnauthorizedCaller(msg.sender, ROLE_PRODUCER)`.
+  - Nếu chưa nộp đủ tiền cọc bảo đảm uy tín $\rightarrow$ Revert `StakeTooLow(provided, minimum)`.
+  - Nếu nộp thiếu hoặc không nộp phí tạo lô $\rightarrow$ Revert `InsufficientBatchFee(provided, requiredFee)`.
   - Nếu mã lô đã tồn tại $\rightarrow$ Revert `BatchAlreadyExists(batchCode)`.
   - Nếu để trống thông tin $\rightarrow$ Revert `EmptyString(fieldName)`.
+  - Nếu Admin cố tình set phí vượt hạn mức an toàn $\rightarrow$ Revert `FeeExceedsLimit(attempted, maxLimit)`.
 
 ### Quy tắc 2 (Thêm chặng theo đúng vai - Role-based Checkpoint)
 - **Ai được làm gì:** Địa chỉ ví nắm giữ đúng vai trò `role` được khai báo (`ROLE_LOGISTICS`, `ROLE_RETAILER`, `ROLE_INSPECTOR`, `ROLE_PRODUCER`) mới được gọi `addCheckpoint`.
@@ -82,3 +92,28 @@ Trong dự án HueLegend, nhóm chuyển giao trọn vẹn 4 kỹ thuật cốt 
 2. **Sự kiện minh bạch:** Phát `StakeDeposited(producer, amount, unlockTime)` và `StakeWithdrawn(producer, amount)`.
 3. **Lỗi tùy biến (Custom Errors):** `StakeTooLow()`, `StillLocked(unlockAt, currentTime)`, `NothingToWithdraw()`, `TransferFailed()`.
 4. **Quy trình Checks — Effects — Interactions (CEI):** Kiểm tra điều kiện thời gian trước $\rightarrow$ Xóa số dư cọc về 0 $\rightarrow$ Phát sự kiện $\rightarrow$ Chuyển ETH ra ngoài bằng `call{value: ...}("")`.
+
+---
+
+## 6. Đặc tả Quy tắc Kinh tế & Kịch bản Kiểm thử (Áp dụng từ Lab 11)
+
+### 6.1. Quy tắc kinh tế lựa chọn
+Trong Lab 11, nhóm HueLegend chọn cài đặt quy tắc kinh tế: **Phí khởi tạo lô hàng đặc sản (`batchCreationFee = 0.001 ETH`) tự động nộp vào Quỹ phát triển OCOP Huế (`ecosystemFund`)**.
+- **Cơ chế thu phí:** Khi cơ sở sản xuất tạo lô hàng (`createBatch`), hợp đồng bắt buộc kiểm tra `msg.value >= batchCreationFee`.
+- **Chuyển tiền tự động (Auto-forwarding):** Tiền phí được chuyển ngay sang ví `ecosystemFund` bằng `call{value: msg.value}("")` tuân thủ nghiêm ngặt CEI.
+- **Hạn mức an toàn (Circuit Breaker):** Admin chỉ được phép cập nhật mức phí tối đa `MAX_BATCH_FEE_LIMIT = 0.01 ETH`.
+
+### 6.2. Kịch bản kiểm thử (Test Cases)
+1. **Ca kiểm thử hợp lệ (Valid Case):**
+   - Tài khoản có vai trò `ROLE_PRODUCER` đã nộp đủ tiền cọc (0.05 ETH) gọi `createBatch()` gửi kèm đúng 0.001 ETH.
+   - Kết quả mong đợi: Giao dịch thành công, phát sự kiện `BatchCreated` và `BatchFeeCollected`, số dư ví `ecosystemFund` tăng chính xác 0.001 ETH.
+2. **Ca kiểm thử vi phạm kinh tế (Economic Violation Case):**
+   - Tài khoản `ROLE_PRODUCER` gọi `createBatch()` nhưng gửi thiếu phí (ví dụ 0.0005 ETH).
+   - Kết quả mong đợi: Giao dịch bị hoàn tác với lỗi tùy biến `InsufficientBatchFee(0.0005 ether, 0.001 ether)`.
+3. **Ca kiểm thử vi phạm hạn mức an toàn (Circuit Breaker Violation Case):**
+   - Admin cố tình thiết lập mức phí mới là 0.02 ETH (> 0.01 ETH).
+   - Kết quả mong đợi: Giao dịch bị hoàn tác với lỗi tùy biến `FeeExceedsLimit(0.02 ether, 0.01 ether)`.
+4. **Ca kiểm thử gian lận quyền hạn (Fraud Case):**
+   - Tài khoản lạ không có quyền `ROLE_PRODUCER` cố tình gọi `createBatch()` hoặc `addCheckpoint()`.
+   - Kết quả mong đợi: Giao dịch bị hoàn tác với lỗi `UnauthorizedCaller`.
+

@@ -101,3 +101,49 @@ Nhóm đã triển khai thực nghiệm mã kiểm thử tại [`test/VaultBuggy
 | **4** | Hàm `verifyBatch` cho phép gọi trùng lặp nhiều lần trên cùng một mã lô hàng làm rác dữ liệu, đồng thời thiếu chức năng thu hồi tem OCOP khi cơ quan chức năng phát hiện mẫu vi phạm ATVSTP. | **Sinh viên** *(Tự phát hiện)* | Thêm lỗi `BatchAlreadyVerified`, kiểm tra `!isVerified` trước khi duyệt và xây dựng thêm hàm `revokeBatchVerification()` dành riêng cho `ROLE_INSPECTOR`. |
 
 *(Toàn bộ 4 lỗi trên đã được nhóm sửa triệt để trong mã nguồn [`contracts/project/ProjectCore.sol`](../contracts/project/ProjectCore.sol) và bổ sung ca kiểm thử tự động tại [`test/ProjectCore.test.js`](../test/ProjectCore.test.js))*.
+
+---
+
+## 6. Phiên làm việc Lab 11: Cài đặt quy tắc kinh tế vào sản phẩm & Kiểm thử
+
+### 6.1. Câu lệnh (Prompt) đưa vào theo yêu cầu Bước 3:
+> *"Hãy cài đặt quy tắc kinh tế vào hợp đồng ProjectCore.sol của dự án HueLegend: Phí tạo lô hàng batchCreationFee = 0.001 ETH tự động nộp vào Quỹ phát triển OCOP Huế (ecosystemFund). Có trần an toàn Circuit Breaker MAX_BATCH_FEE_LIMIT = 0.01 ETH. Áp dụng chuẩn CEI, custom error, emit event biên lai, chuyển ETH bằng .call và tuân thủ tuyệt đối quy ước AGENTS.md."*
+
+### 6.2. Phân tích bài mẫu `ClassPoint.sol` và 3 điểm cốt lõi (Bước 2):
+1. **Điểm cơ bản (Basis Point - BPS):**
+   - Trong Solidity không hỗ trợ số thực (float/fixed point). Để tính tỷ lệ phần trăm (1% phí chuyển nhượng), chuẩn tài chính sử dụng `feeBps = 100` trên mẫu số quy ước `10,000` (1 bps = 0.01%, 100 bps = 1.00%). Công thức: `fee = (value * feeBps) / 10_000`. Phép tính luôn nhân trước, chia sau để bảo toàn độ chính xác và tránh bị làm tròn về 0.
+2. **Loại trừ chủ sở hữu (`from != owner()`):**
+   - Nếu không có điều kiện `from != owner()`, chính lúc triển khai hoặc `owner` phân phát/airdrop điểm thưởng cho sinh viên cũng sẽ bị trừ 1% phí nộp về quỹ lớp, làm thâm hụt tổng lượng token thực tế đưa vào lưu thông. Đây là loại lỗi logic nghiệp vụ mà các công cụ AI thông thường hay bỏ sót nếu người ra lệnh không hiểu sâu về bài toán kinh tế.
+3. **Ghi chú về hàm hook `_update` trong OpenZeppelin 5.x:**
+   - Trong thư viện OpenZeppelin Contracts 4.x, các hook chuyển token sử dụng hàm `_beforeTokenTransfer` và `_afterTokenTransfer`.
+   - Lên phiên bản OpenZeppelin 5.x, toàn bộ các hook trên đã bị gỡ bỏ hoàn toàn và hợp nhất vào một hàm duy nhất là `_update(address from, address to, uint256 value)`.
+   - **Thử nghiệm tái tạo lỗi:** Khi cố tình viết theo cú pháp cũ `function _beforeTokenTransfer(...) internal override`, trình biên dịch Solidity sẽ lập tức báo lỗi nghiêm trọng:
+     ```text
+     TypeError: Function cannot be declared as override as it does not override any function
+     ```
+   - Nhóm đã nắm chắc nguyên lý này và áp dụng chính xác `_update` cho cả `ClassPoint.sol` và cấu trúc kế thừa trong dự án.
+
+### 6.3. Lựa chọn thiết kế quy tắc kinh tế cho dự án `HueLegend`:
+Nhóm đã chọn đúng 01 quy tắc cốt lõi từ [`docs/ECONOMIC_RULES.md`](./ECONOMIC_RULES.md) để cài đặt vào [`contracts/project/ProjectCore.sol`](../contracts/project/ProjectCore.sol):
+- **Quy tắc kinh tế:** Phí khởi tạo lô hàng đặc sản `batchCreationFee = 0.001 ETH` nộp vào Quỹ phát triển làng nghề Huế (`ecosystemFund`).
+- **Lý do thiết kế:**
+  1. Ngăn chặn hành vi spam dữ liệu rác lên blockchain.
+  2. Bù đắp chi phí vận hành mạng lưới và trích lập nguồn ngân sách hỗ trợ số hóa cho các làng nghề truyền thống khó khăn tại Thừa Thiên Huế.
+  3. Cơ chế **Chuyển tiếp tức thì (Auto-forwarding):** Hợp đồng không lưu giữ tiền phí mà chuyển ngay về ví Quỹ bằng `call{value: msg.value}("")`, giảm thiểu tối đa rủi ro hợp đồng bị tấn công rút tiền.
+  4. Cơ chế **Trần an toàn (Circuit Breaker):** Giới hạn `MAX_BATCH_FEE_LIMIT = 0.01 ETH`, ngăn chặn trường hợp Admin bị hack khóa riêng hoặc lạm quyền tự ý tăng phí lên quá cao làm khó các hộ sản xuất nhỏ lẻ.
+
+### 6.4. Báo cáo kết quả kiểm thử (Bước 4):
+Nhóm đã triển khai kiểm thử toàn diện tại [`test/ProjectCore.test.js`](../test/ProjectCore.test.js):
+1. **Ca kiểm thử hợp lệ (TC-01):**
+   - Cơ sở sản xuất nộp đúng `0.001 ETH` khi gọi `createBatch()`.
+   - Kết quả: Tạo lô thành công, phát sự kiện `BatchCreated` và `BatchFeeCollected`, số dư ví Quỹ `ecosystemFund` tăng chính xác `0.001 ETH`.
+2. **Ca kiểm thử vi phạm quy tắc kinh tế (TC-01b - Nộp thiếu phí):**
+   - Cơ sở sản xuất chỉ gửi `0.0005 ETH` khi gọi `createBatch()`.
+   - Kết quả: Giao dịch bị từ chối bằng đúng lỗi `InsufficientBatchFee(0.0005 ether, 0.001 ether)`.
+3. **Ca kiểm thử vi phạm trần an toàn Circuit Breaker (TC-01c):**
+   - Admin cố tình gọi `setBatchCreationFee(0.02 ether)` (> 0.01 ETH).
+   - Kết quả: Giao dịch bị hoàn tác với lỗi `FeeExceedsLimit(0.02 ether, 0.01 ether)`.
+4. **Ca kiểm thử gian lận quyền hạn (TC-03):**
+   - Kẻ xấu không có vai trò hợp lệ cố tình thêm chặng vào lô hàng.
+   - Kết quả: Giao dịch bị hoàn tác với lỗi `UnauthorizedCaller`.
+
