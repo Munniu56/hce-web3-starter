@@ -1,32 +1,44 @@
-# KẾ HOẠCH DỰ ÁN HUELEGEND (PROJECT PLAN)
+# PROJECT PLAN — HueLegend
 
-## 1. Thông tin chung dự án
-- **Tên dự án:** HueLegend — Nền tảng Truy xuất Nguồn gốc Đặc sản Huế trên Blockchain
-- **Học phần:** Tiền điện tử & Hợp đồng thông minh (ECO2432 / TDT&HDTM)
-- **Mục tiêu:** Xây dựng hệ thống Web3 DApp hoàn chỉnh cho phép Cơ sở sản xuất tạo lô hàng đặc sản, các đơn vị chuỗi cung ứng thêm chặng hành trình theo đúng vai trò, và người tiêu dùng quét mã QR để tra cứu lịch sử bất biến.
+## Thành viên và vai trò
 
----
+Nhóm gồm 4 thành viên đảm nhận 4 vai trò chính: **Đặc tả**, **Hợp đồng**, **Giao diện**, **Kiểm thử**. Các thành viên thực hiện luân chuyển (xoay) vai trò từ sau Lab 11 theo đúng quy định học phần:
 
-## 2. Phân công vai trò trong nhóm
-
-| Thành viên | Vai trò phụ trách | Trách nhiệm chính |
-| :--- | :--- | :--- |
-| **Ngô Thị Thuỷ Vân** | **Trưởng nhóm / Product Owner & SC Dev** | Quản lý tiến độ, thiết kế kiến trúc hệ thống, phát triển Smart Contract `ProjectCore.sol`, thiết lập môi trường kiểm thử. |
-| **Thành viên 02** | **Frontend Web3 Developer** | Xây dựng giao diện DApp (`web/index.html`), tích hợp thư viện Ethers.js, QR Code Generator và hiển thị Timeline tương tác. |
-| **Thành viên 03** | **QA & Smart Contract Auditor** | Soạn thảo kịch bản kiểm thử (`test/`), thẩm định an toàn bảo mật, mô phỏng các ca tấn công gian lận và kiểm tra gas. |
-| **Thành viên 04** | **Business Analyst & Content Lead** | Hoàn thiện tài liệu nghiệp vụ (`SPEC.md`, `ECONOMIC_RULES.md`, `PRESENTATION_PLAN.md`), chuẩn bị dữ liệu mẫu các làng nghề đặc sản Huế. |
+| Họ tên | Mã sinh viên | Vai chính Lab 8–11 | Vai chính Lab 12–15 |
+| :--- | :--- | :--- | :--- |
+| **Ngô Thị Thuỷ Vân** *(Trưởng nhóm)* | 23K4300023 | Hợp đồng (Smart Contract) | Kiểm thử (QA & Security Audit) |
+| **Lê Thị Thảo Nhi** | 23K4300018 | Đặc tả (SPEC & BA Lead) | Giao diện (Frontend Web3 DApp) |
+| **Trần Văn Nhật Minh** | 23K4300015 | Giao diện (Frontend Web3 DApp) | Đặc tả (SPEC & Gate Review) |
+| **Nguyễn Hoàng Phúc** | 23K4300020 | Kiểm thử (Test Cases & Script) | Hợp đồng (Smart Contract Core) |
 
 ---
 
-## 3. Lộ trình công việc chi tiết (Từ Lab 8 đến Lab 15)
+## Người dùng và vấn đề
 
-| Mốc (Milestone) | Nội dung công việc chính | Kết quả đầu ra (Deliverables) |
-| :--- | :--- | :--- |
-| **Lab 8** *(Hiện tại)* | - Khởi tạo cấu trúc chuẩn của dự án `HueLegend`<br>- Viết `SPEC.md`, `AGENTS.md`, `ECONOMIC_RULES.md`<br>- Triển khai hợp đồng `ProjectCore.sol` đáp ứng luồng cốt lõi: Tạo lô → Thêm chặng theo vai → Quét QR<br>- Viết bộ kiểm thử gồm ca gian lận<br>- Dựng giao diện Web DApp mẫu | Cấu trúc thư mục hoàn thiện, hợp đồng `ProjectCore.sol` biên dịch sạch, giao diện web chạy được, commit `lab-08: [khoi tao cau truc du an HueLegend]` |
-| **Lab 9** | - Nghiên cứu kỹ thuật qua các hợp đồng `contracts/training/`<br>- Tối ưu hóa lưu trữ và chi phí gas cho struct Lô hàng và Chặng | Báo cáo phân tích gas, tối ưu kiểu dữ liệu `uint256`, `string` sang `bytes32` |
-| **Lab 10** | - Hoàn thiện cơ chế phân quyền RBAC (Role-Based Access Control) nhiều cấp<br>- Xây dựng chức năng cấp/hủy quyền cơ sở sản xuất và điểm bán | Cập nhật hợp đồng, bổ sung test case kiểm tra phân quyền nâng cao |
-| **Lab 11** | - Triển khai hợp đồng lên mạng thử nghiệm **Ethereum Sepolia Testnet**<br>- Thực hiện xác thực mã nguồn trên Sepolia Etherscan | Địa chỉ Contract Sepolia, link Etherscan đã verified, lưu TxHash vào `evidence/lab-11` |
-| **Lab 12** | - Cụ thể hóa quy tắc kinh tế số (`ECONOMIC_RULES.md`)<br>- Mô phỏng cơ chế ký quỹ (Staking) bảo đảm chất lượng của làng nghề | Hợp đồng có tích hợp tiền cọc đảm bảo, ca kiểm thử phạt tịch thu cọc khi gian lận |
-| **Lab 13** | - Kiểm thử bảo mật chuyên sâu (Security Audit)<br>- Rà soát các lỗi phổ biến (Reentrancy, Integer Overflow, Denial of Service khi duyệt mảng chặng) | Báo cáo kiểm định an toàn, cập nhật `AI_JOURNAL.md` ghi nhận lỗi phát hiện |
-| **Lab 14** | - Tích hợp toàn diện giao diện Web3 với ví MetaMask và Sepolia RPC<br>- Tích hợp chức năng tạo mã QR động dẫn thẳng đến trang tra cứu lô hàng | Giao diện DApp hoạt động mượt mà với ví thực tế, quét camera QR trực tiếp |
-| **Lab 15** | - Diễn tập kịch bản bảo vệ (`PRESENTATION_PLAN.md`)<br>- Tổng hợp toàn bộ hồ sơ bằng chứng từ Lab 8 - 15 vào thư mục `evidence/` | Video/Slide báo cáo, đường link chạy thật (Vercel/GitHub Pages), bảo vệ thành công |
+- **Người dùng chính:**
+  - *Cơ sở sản xuất & Làng nghề truyền thống Huế:* Các hộ kinh doanh, xưởng đặc sản (Mè xửng Thiên Hương, Tôm chua Trọng Tín, Trà Cung đình Đức Phượng, Nón lá Tây Hồ, Dầu tràm Lộc Thủy).
+  - *Đơn vị chuỗi cung ứng:* Đơn vị logistics, bến bãi, đại lý/điểm bán lẻ quà lưu niệm tại Huế và các tỉnh thành.
+  - *Khách mua hàng & Du khách:* Người tiêu dùng mua đặc sản Huế làm quà, cần kiểm chứng nguồn gốc chuẩn chỉ.
+  - *Cơ quan thẩm định:* Chi cục Quản lý Chất lượng Nông Lâm Thủy sản, Ban quản lý OCOP tỉnh Thừa Thiên Huế.
+
+- **Vấn đề cần giải quyết:**
+  - Tình trạng hàng nhái, hàng trôi nổi kém chất lượng mạo danh đặc sản Huế làm suy giảm nghiêm trọng uy tín làng nghề.
+  - Khách hàng thiếu công cụ tin cậy để đối soát thông tin; tem nhãn giấy truyền thống rất dễ bị làm giả, bóc dán tráo đổi.
+  - Các bên vận chuyển, phân phối thiếu bằng chứng xác nhận trách nhiệm minh bạch, bất biến.
+
+- **Sản phẩm cuối nhìn thấy được:**
+  - DApp Web3 công khai (`web/index.html`) hỗ trợ kết nối ví Web3 (Ethereum Sepolia).
+  - Luồng 3 bước hoạt động trơn tru: Tạo lô hàng $\rightarrow$ Thêm chặng theo đúng vai trò $\rightarrow$ Quét mã QR xem dòng thời gian (Timeline) lịch sử lô hàng bất biến on-chain.
+  - Smart contract `ProjectCore.sol` đã triển khai và xác thực mã nguồn trên Sepolia Etherscan.
+
+---
+
+## Mốc bắt buộc
+
+- **Lab 9:** contract lõi biên dịch được (tối ưu hóa gas và cấu trúc dữ liệu theo bài học training).
+- **Lab 10:** audit và sửa lỗi có bằng chứng (kiểm tra phân quyền RBAC và các lỗ hổng Reentrancy, Overflow).
+- **Lab 11:** quy tắc kinh tế chạy đúng (triển khai hợp đồng lên mạng Sepolia Testnet, kích hoạt cơ chế phí và cọc).
+- **Lab 12:** Gate Review 1 (báo cáo đánh giá giữa kỳ và thẩm định tính khả thi của mô hình).
+- **Lab 13:** test ca tấn công/gian lận (mô phỏng kẻ xấu cố tình tạo chặng giả mạo, chèn mã lô trùng, vượt quyền).
+- **Lab 14:** audit chéo (phản biện và kiểm thử bảo mật chéo giữa các nhóm trong lớp).
+- **Lab 15:** URL DApp công khai (bảo vệ dự án, live demo quét mã QR và trình diễn sản phẩm cuối kỳ).

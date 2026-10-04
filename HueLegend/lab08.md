@@ -1,38 +1,32 @@
-# LAB 08 — KHỞI TẠO CẤU TRÚC DỰ ÁN NHÓM: HUELEGEND
+# LAB 08 — THIẾT KẾ QUY TẮC KINH TẾ CHO SẢN PHẨM (HUELEGEND)
 
-- **Đề tài:** Truy xuất nguồn gốc đặc sản Huế trên Blockchain (HueLegend)
-- **Bài toán:** Cơ sở sản xuất làng nghề và khách mua cần lịch sử lô hàng bất biến, chống hàng giả mạo.
-- **Luồng cốt lõi demo:** Tạo lô → Thêm chặng bởi đúng vai → Quét QR xem lịch sử.
-
----
-
-## Danh mục tài liệu và mã nguồn đã hoàn thiện
-
-1. 📄 **Tài liệu đặc tả & Kế hoạch:**
-   - [`README.md`](./README.md): Giới thiệu sản phẩm, bài toán và hướng dẫn sử dụng.
-   - [`AGENTS.md`](./AGENTS.md): Quy ước kỹ thuật và nguyên tắc sinh mã cho AI (Solidity ^0.8.20, CEI, tiếng Việt không dấu,...).
-   - [`docs/PROJECT_PLAN.md`](./docs/PROJECT_PLAN.md): Phân công vai trò thành viên và kế hoạch từ Lab 8 đến Lab 15.
-   - [`docs/SPEC.md`](./docs/SPEC.md): Đặc tả nghiệp vụ luồng tạo lô, thêm chặng theo vai và quét mã QR.
-   - [`docs/AI_JOURNAL.md`](./docs/AI_JOURNAL.md): Nhật ký làm việc cùng AI, các lỗ hổng mạo danh vai trò và tối ưu gas.
-   - [`docs/ECONOMIC_RULES.md`](./docs/ECONOMIC_RULES.md): Quy tắc kinh tế, ký quỹ uy tín và chế tài xử lý gian lận (tính theo basis point).
-   - [`docs/PRESENTATION_PLAN.md`](./docs/PRESENTATION_PLAN.md): Kịch bản thuyết trình và các bước thao tác live demo.
-
-2. ⛓️ **Hợp đồng thông minh & Bài mẫu học tập:**
-   - [`contracts/project/ProjectCore.sol`](./contracts/project/ProjectCore.sol): Smart contract cốt lõi của HueLegend.
-   - [`contracts/training/`](./contracts/training/): Bài mẫu kỹ thuật dùng cho Lab 9, 10, 13 (`ClassPoint.sol`, `TimeLockVault.sol`, `VaultBuggy.sol`, `VulnerableBank.sol`).
-
-3. 🧪 **Kiểm thử tự động:**
-   - [`test/ProjectCore.test.js`](./test/ProjectCore.test.js): Bộ ca kiểm thử đơn vị, bao gồm ca kiểm thử gian lận (TC-03) khi kẻ xấu cố tình chèn chặng giả.
-
-4. 🌐 **Giao diện Web3 DApp:**
-   - [`web/index.html`](./web/index.html): Giao diện DApp phong cách Cố Đô hoàng gia, tích hợp sinh mã QR động và tra cứu timeline.
-
-5. 📁 **Hồ sơ bằng chứng thực hành:**
-   - [`evidence/lab-08/README.md`](./evidence/lab-08/README.md): Biên bản nộp bài Lab 8 và commit chuẩn.
+- **Đề tài:** Truy xuất nguồn gốc đặc sản Huế trên Blockchain
+- **Một câu định vị sản phẩm (Checkpoint 1):**  
+  *"Nhóm xây HueLegend cho các cơ sở làng nghề và du khách mua đặc sản Huế để minh bạch lịch sử nguồn gốc từng lô hàng qua mã QR bất biến trên blockchain."*
 
 ---
 
-## Mẫu commit kết thúc buổi thực hành Lab 8:
+## 📋 Kiểm tra các sản phẩm nộp của Lab 8
+
+- [x] **Bước 1 — Chọn chủ đề & Viết câu định vị:** Đạt chuẩn $\le 2$ dòng, không dùng thuật ngữ kỹ thuật phức tạp.
+- [x] **Bước 2 — Tạo repo và cấu trúc chuẩn:** Thư mục `HueLegend/` chuẩn hóa theo Phần B.6.
+- [x] **Bước 3 — Phân vai và lập kế hoạch ([`PROJECT_PLAN.md`](./docs/PROJECT_PLAN.md)):**
+  - Đủ 4 vai: Đặc tả, Hợp đồng, Giao diện, Kiểm thử.
+  - Có lộ trình xoay vai giữa Lab 8–11 và Lab 12–15.
+  - Đủ mục Người dùng & Vấn đề; Các mốc bắt buộc từ Lab 9 đến Lab 15.
+- [x] **Bước 4 — Viết đặc tả v0.1 & Quy tắc kinh tế:**
+  - [`SPEC.md`](./docs/SPEC.md): Tối thiểu 4 quy tắc có thể kiểm thử (Ai làm gì, khi nào, giới hạn, lỗi thì sao).
+  - [`ECONOMIC_RULES.md`](./docs/ECONOMIC_RULES.md): Đủ 4 mục (Dòng tiền/quyền lợi, Giới hạn chống lạm dụng, Quyền quản trị, Tình huống người dùng bị thiệt).
+  - [`AI_JOURNAL.md`](./docs/AI_JOURNAL.md): Thực hiện prompt phản biện người dùng thận trọng (5 cách lạm dụng) và nhóm trả lời chi tiết.
+- [x] **Bước 5 — Chốt phiên bản đầu:**
+  - [`README.md`](./README.md): Trả lời đủ 4 câu hỏi vàng cho người lạ mở repo.
+  - Commit mẫu: `lab-08: khoi tao codebase nhom va dac ta v0.1`.
+
+---
+
+## Lệnh Git đề xuất thực hiện:
 ```bash
-lab-08: [khoi tao cau truc du an HueLegend]
+git add .
+git commit -m "lab-08: khoi tao codebase nhom va dac ta v0.1"
+git push origin main
 ```

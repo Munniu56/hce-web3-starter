@@ -1,87 +1,92 @@
-# SPEC — ĐẶC TẢ NGHIỆP VỤ HỆ THỐNG TRUY XUẤT ĐẶC SẢN HUẾ (HUELEGEND)
+# SPEC — ĐẶC TẢ NGHIỆP VỤ HỆ THỐNG TRUY XUẤT ĐẶC SẢN HUẾ (HUELEGEND v0.1)
 
-## 1. Mục tiêu sản phẩm
-Hệ thống **HueLegend** ứng dụng công nghệ Blockchain (Ethereum Sepolia) nhằm giải quyết triệt để vấn đề hàng nhái, hàng giả mạo xuất xứ và mất uy tín thương hiệu đối với các sản phẩm đặc sản Huế (Mè xửng, Tôm chua, Trà sen, Tinh dầu tràm,...).
-Hệ thống cung cấp cơ chế ghi chép hành trình bất biến on-chain:
-- Giúp **Cơ sở sản xuất** minh bạch nguồn gốc nguyên liệu và chuẩn OCOP.
-- Giúp **Đơn vị vận chuyển & Điểm bán** xác nhận việc tiếp nhận lô hàng bằng chữ ký mật mã (ví Web3).
-- Giúp **Khách mua hàng** quét mã QR để đối soát toàn bộ chặng hành trình từ nông trại/xưởng sản xuất đến tay người tiêu dùng.
+## 1. Mục đích
+Hệ thống **HueLegend** ứng dụng công nghệ Blockchain (Ethereum Sepolia) nhằm minh bạch hóa toàn diện chuỗi cung ứng các đặc sản truyền thống xứ Huế (Mè xửng, Tôm chua, Trà Cung đình, Tinh dầu tràm, Nón bài thơ). Hệ thống cung cấp cơ chế lưu trữ lịch sử bất biến on-chain giúp bảo vệ uy tín các làng nghề OCOP và trao quyền cho người tiêu dùng tự kiểm chứng nguồn gốc sản phẩm qua mã QR.
 
 ---
 
-## 2. Các vai trò trong hệ thống (Actors & Roles)
-
-| Vai trò | Ký hiệu on-chain | Trách nhiệm chính |
-| :--- | :--- | :--- |
-| **Quản trị viên hệ thống** | `ROLE_ADMIN` / `owner` | Cấp phát và thu hồi quyền vai trò cho các đơn vị tham gia mạng lưới. |
-| **Cơ sở sản xuất** | `ROLE_PRODUCER` | Khởi tạo lô hàng đặc sản mới, ghi nhận vùng trồng/vùng đánh bắt nguyên liệu. |
-| **Đơn vị vận chuyển** | `ROLE_LOGISTICS` | Cập nhật chặng nhận hàng, xuất kho, điều kiện vận chuyển (nhiệt độ, phương tiện). |
-| **Đại lý / Cửa hàng bán lẻ** | `ROLE_RETAILER` | Ghi nhận chặng nhập kho cửa hàng tại Huế hoặc các tỉnh thành, niêm yết bán lẻ. |
-| **Cơ quan kiểm định OCOP** | `ROLE_INSPECTOR` | Thẩm định chất lượng mẫu, cấp chứng nhận an toàn và đánh dấu xác thực (`isVerified`). |
-| **Khách mua hàng** | Người dùng phổ thông (Guest) | Quét mã QR trên bao bì, đọc dữ liệu công khai trên blockchain mà không cần ví hay trả phí gas. |
+## 2. Người dùng và Đối tượng thụ hưởng (Actors)
+- **Cơ sở sản xuất (`ROLE_PRODUCER`):** Hộ sản xuất, hợp tác xã làng nghề Huế (ví dụ: Mè xửng Thiên Hương, Tôm chua Trọng Tín,...).
+- **Đơn vị vận chuyển (`ROLE_LOGISTICS`):** Đơn vị giao vận đường bộ, đường sắt (Ga Huế), hàng không (Sân bay Phú Bài).
+- **Đại lý / Cửa hàng bán lẻ (`ROLE_RETAILER`):** Điểm bán quà lưu niệm, siêu thị đặc sản tại Huế, Hà Nội, TP.HCM.
+- **Cơ quan kiểm định (`ROLE_INSPECTOR`):** Chi cục Quản lý Chất lượng Nông Lâm Thủy sản TT Huế, Ban quản lý OCOP.
+- **Khách mua hàng (Người dùng phổ thông / Consumer):** Du khách, người tiêu dùng quét mã QR tra cứu miễn phí.
 
 ---
 
-## 3. Cấu trúc dữ liệu cốt lõi
+## 3. Đầu vào và Đầu ra
 
-### 3.1. Thực thể Lô hàng (`Batch`)
-- `batchCode`: Mã lô định danh duy nhất (chuỗi ký tự, ví dụ: `HL-MEXUNG-2026-001`).
-- `productName`: Tên sản phẩm đặc sản Huế (ví dụ: `Mè xửng giòn Thuận An`).
-- `origin`: Địa danh xuất xứ nguyên liệu (ví dụ: `Phú Hậu, TP Huế`).
-- `createdAt`: Dấu thời gian (Unix timestamp) tạo lô trên block.
-- `producer`: Địa chỉ ví Ethereum của cơ sở sản xuất.
-- `isVerified`: Trạng thái thẩm định chất lượng OCOP (`true`/`false`).
-- `exists`: Cờ kiểm tra tính tồn tại của mã lô.
+### 3.1. Dữ liệu đầu vào
+- Mã định danh lô hàng (`batchCode`): chuỗi ký tự duy nhất (ví dụ: `HL-MEXUNG-2026-001`).
+- Tên đặc sản (`productName`): tên sản phẩm làng nghề được bảo hộ.
+- Vùng nguyên liệu (`origin`): địa danh xuất xứ nguyên liệu sạch tại Thừa Thiên Huế.
+- Thông tin chặng: địa điểm (`location`), hành động thực hiện (`action`), đường dẫn chứng từ kiểm định (`metadataURI`).
+- Chữ ký xác thực của ví Web3 gửi giao dịch (`msg.sender`).
 
-### 3.2. Thực thể Chặng hành trình (`Checkpoint`)
-- `timestamp`: Thời điểm ghi nhận chặng on-chain.
-- `recorder`: Địa chỉ ví thực hiện ký và gửi giao dịch.
-- `role`: Vai trò của bên ghi nhận (`bytes32`).
-- `location`: Địa điểm cụ thể diễn ra sự kiện (ví dụ: `Kho trung chuyển Ga Huế`).
-- `action`: Nội dung hành động (ví dụ: `Niêm phong đóng thùng lạnh, xuất hàng đi Hà Nội`).
-- `metadataURI`: Đường dẫn lưu trữ bằng chứng ngoại vi (IPFS hash hình ảnh, giấy kiểm nghiệm ATVSTP).
+### 3.2. Dữ liệu đầu ra
+- Lịch sử chuỗi cung ứng bất biến dạng dòng thời gian (Timeline) bao gồm: thời gian khối, người ký, vai trò, địa điểm, hành động, mã băm giao dịch (TxHash).
+- Mã phản hồi nhanh (QR Code) động liên kết trực tiếp đến trang tra cứu lô hàng.
+- Trạng thái kiểm định OCOP (`isVerified`: `true`/`false`).
 
 ---
 
-## 4. Luồng cốt lõi Demo (Core Workflow)
+## 4. Bốn quy tắc nghiệp vụ cốt lõi có thể kiểm thử (Testable Rules)
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor P as Cơ sở sản xuất (PRODUCER)
-    actor L as Vận chuyển (LOGISTICS)
-    actor R as Cửa hàng (RETAILER)
-    actor C as Khách mua (CONSUMER)
-    participant SC as Smart Contract (ProjectCore)
+Hệ thống được kiểm soát nghiêm ngặt bởi 4 quy tắc nền tảng thỏa mãn cấu trúc: **Ai được làm gì | Khi nào | Giới hạn bao nhiêu | Lỗi thì sao**:
 
-    Note over P,SC: Bước 1: Tạo lô đặc sản Huế
-    P->>SC: createBatch("HL-MEXUNG-001", "Me Xung Thien Huong", "Phu Hau", metadataURI)
-    SC-->>P: Emit BatchCreated & CheckpointAdded (Chặng 1)
+### Quy tắc 1 (Khởi tạo lô đặc sản - Batch Creation)
+- **Ai được làm gì:** Chỉ địa chỉ ví được cấp quyền `ROLE_PRODUCER` (hoặc `owner`) mới được gọi hàm `createBatch`.
+- **Khi nào:** Khi sản phẩm hoàn thành chế biến tại xưởng và chuẩn bị đóng gói dán tem.
+- **Giới hạn bao nhiêu:** Mỗi mã lô (`batchCode`) là chuỗi không rỗng và chỉ được tạo duy nhất một lần trên toàn mạng lưới (`batchCode` không được trùng lặp).
+- **Lỗi thì sao:** 
+  - Nếu không có quyền $\rightarrow$ Revert `UnauthorizedCaller(msg.sender, ROLE_PRODUCER)`.
+  - Nếu mã lô đã tồn tại $\rightarrow$ Revert `BatchAlreadyExists(batchCode)`.
+  - Nếu để trống thông tin $\rightarrow$ Revert `EmptyString(fieldName)`.
 
-    Note over L,SC: Bước 2: Thêm chặng theo đúng vai
-    L->>SC: addCheckpoint("HL-MEXUNG-001", ROLE_LOGISTICS, "Ga Hue", "Xuat kho tau hoa", uri)
-    SC-->>L: Kiểm tra role -> Emit CheckpointAdded (Chặng 2)
+### Quy tắc 2 (Thêm chặng theo đúng vai - Role-based Checkpoint)
+- **Ai được làm gì:** Địa chỉ ví nắm giữ đúng vai trò `role` được khai báo (`ROLE_LOGISTICS`, `ROLE_RETAILER`, `ROLE_INSPECTOR`, `ROLE_PRODUCER`) mới được gọi `addCheckpoint`.
+- **Khi nào:** Khi lô hàng được tiếp nhận, chuyển giao, lưu kho hoặc kiểm tra điều kiện bảo quản tại một địa điểm mới.
+- **Giới hạn bao nhiêu:** Lô hàng mục tiêu phải đang tồn tại trên chuỗi (`exists == true`). Mỗi giao dịch ghi nhận đúng 1 chặng kèm chữ ký ví của người gửi.
+- **Lỗi thì sao:**
+  - Nếu mã lô không tồn tại $\rightarrow$ Revert `BatchNotFound(batchCode)`.
+  - Nếu ví gửi giao dịch không sở hữu vai trò tương ứng $\rightarrow$ Revert `UnauthorizedCaller(msg.sender, role)`.
 
-    R->>SC: addCheckpoint("HL-MEXUNG-001", ROLE_RETAILER, "Cho Dong Ba", "Nhap quay ban le", uri)
-    SC-->>R: Kiểm tra role -> Emit CheckpointAdded (Chặng 3)
+### Quy tắc 3 (Thẩm định và Cấp chứng nhận OCOP - Inspection Verification)
+- **Ai được làm gì:** Chỉ cơ quan kiểm định độc lập nắm giữ vai trò `ROLE_INSPECTOR` mới được gọi hàm `verifyBatch`.
+- **Khi nào:** Sau khi tiến hành lấy mẫu kiểm nghiệm vi sinh, vệ sinh ATVSTP và thẩm định hồ sơ làng nghề đạt chuẩn.
+- **Giới hạn bao nhiêu:** Chỉ thực hiện trên lô hàng đã tồn tại. Cờ `isVerified` được chuyển sang `true` và tự động ghi nhận chặng kiểm định có gắn link chứng chỉ IPFS.
+- **Lỗi thì sao:** Nếu ví không phải là `ROLE_INSPECTOR` $\rightarrow$ Revert `UnauthorizedCaller(msg.sender, ROLE_INSPECTOR)`.
 
-    Note over C,SC: Bước 3: Quét QR xem lịch sử
-    C->>SC: getBatch("HL-MEXUNG-001") & getCheckpoints("HL-MEXUNG-001")
-    SC-->>C: Trả về toàn bộ timeline minh bạch không thể tẩy xóa
+### Quy tắc 4 (Tra cứu và Quét mã QR - Public Free Traceability)
+- **Ai được làm gì:** Bất kỳ ai (Khách du lịch, người tiêu dùng, thanh tra thị trường) đều có thể gọi các hàm truy vấn `getBatch` và `getCheckpoints`.
+- **Khi nào:** Bất kỳ lúc nào, thông qua trình duyệt hoặc quét camera mã QR trên bao bì sản phẩm.
+- **Giới hạn bao nhiêu:** Không giới hạn số lần truy vấn, không yêu cầu người dùng phải sở hữu ví Web3 hay có số dư ETH (hàm `view` đọc dữ liệu off-chain hoàn toàn miễn phí gas).
+- **Lỗi thì sao:** Nếu nhập mã lô không tồn tại $\rightarrow$ Revert `BatchNotFound(batchCode)` (trên giao diện hiển thị thông báo "Không tìm thấy lô hàng, cảnh báo nguy cơ hàng giả").
+
+---
+
+## 5. Cấu trúc dữ liệu chi tiết
+
+```solidity
+struct Checkpoint {
+    uint256 timestamp;     // Thoi diem xac thuc tren block
+    address recorder;      // Dia chi vi nguoi ky xac thuc
+    bytes32 role;          // Vai tro cua nguoi ky
+    string location;       // Dia diem thuc hien
+    string action;         // Hanh dong thuc hien
+    string metadataURI;    // Link IPFS chung tu / hinh anh
+}
+
+struct Batch {
+    string batchCode;      // Ma dinh danh lo hang
+    string productName;    // Ten dac san Hue
+    string origin;         // Vung nguyen lieu
+    uint256 createdAt;     // Thoi gian khoi tao
+    address producer;      // Vi co so san xuat
+    bool isVerified;       // Trang thai chung nhan OCOP
+    bool exists;           // Trang thai ton tai
+}
 ```
-
----
-
-## 5. Quy tắc nghiệp vụ bắt buộc (Business Rules)
-
-- **R1 (Tính độc nhất của lô hàng):** Mỗi `batchCode` chỉ được tạo đúng một lần duy nhất. Nếu gửi trùng sẽ lập tức báo lỗi `BatchAlreadyExists`.
-- **R2 (Quyền khởi tạo):** Chỉ địa chỉ ví nắm giữ vai trò `ROLE_PRODUCER` (hoặc `owner`) mới được gọi hàm `createBatch`.
-- **R3 (Khởi tạo chặng ban đầu):** Khi tạo lô thành công, hệ thống phải tự động tạo ngay Chặng 0 (Origin Checkpoint) mang thông tin xưởng sản xuất và thời gian tạo block.
-- **R4 (Kiểm tra đúng vai khi thêm chặng):** Khi gọi `addCheckpoint`, ví gửi giao dịch (`msg.sender`) phải được cấp đúng vai trò `role` được khai báo trong tham số. Nếu không có quyền, giao dịch phải bị hủy bỏ với `revert UnauthorizedCaller(msg.sender, role)`.
-- **R5 (Bất biến):** Lịch sử các chặng một khi đã ghi vào mảng `_batchCheckpoints` thì không có bất kỳ hàm nào cho phép sửa đổi hay xóa bỏ.
-- **R6 (Xác thực chất lượng OCOP):** Chỉ ví có `ROLE_INSPECTOR` mới có thể gọi hàm `verifyBatch` để chuyển cờ `isVerified = true`.
-- **R7 (Truy vấn tự do):** Mọi hàm đọc dữ liệu (`getBatch`, `getCheckpoints`, `getTotalBatches`) là hàm `view`, hoàn toàn miễn phí gas cho người tiêu dùng.
-- **R8 (Phát sự kiện minh bạch):** Mọi thay đổi trạng thái (tạo lô, thêm chặng, chứng nhận OCOP, phân quyền) đều phải phát `event` tương ứng để phục vụ lắng nghe sự kiện trên DApp.
 
 ---
 
@@ -93,9 +98,3 @@ sequenceDiagram
 | Cơ sở sản xuất tạo mã lô rỗng `""` | Kiểm tra độ dài `bytes(batchCode).length == 0` | Revert `EmptyString("batchCode")` |
 | Quét mã QR lô hàng không tồn tại trên chuỗi | Không tìm thấy trong mapping `_batches` | Revert `BatchNotFound` |
 | Đơn vị vận chuyển cố tình ghi nhận chặng vào lô hàng chưa từng được tạo | Báo lỗi không tìm thấy lô hàng | Revert `BatchNotFound` |
-
----
-
-## 7. Ngoài phạm vi (Out of Scope cho phiên bản Lab 8)
-- Chưa tích hợp cảm biến IoT nhiệt độ tự động đẩy dữ liệu theo thời gian thực (hiện tại ghi nhận thủ công qua chữ ký ví Web3).
-- Chưa quy đổi thanh toán tiền pháp định qua cổng ngân hàng (chỉ tương tác on-chain Sepolia).

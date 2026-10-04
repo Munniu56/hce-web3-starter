@@ -1,21 +1,22 @@
 # HueLegend — Hệ Thống Truy Xuất Nguồn Gốc Đặc Sản Huế Trên Blockchain
 
-Dự án nghiên cứu & ứng dụng hợp đồng thông minh thuộc học phần **ECO2432 - Tiền điện tử và Hợp đồng thông minh**.
+> **Câu giới thiệu sản phẩm (Checkpoint 1):**  
+> *"Nhóm xây HueLegend cho các cơ sở làng nghề và du khách mua đặc sản Huế để minh bạch lịch sử nguồn gốc từng lô hàng qua mã QR bất biến trên blockchain."*
 
 ---
 
-## 📌 1. Giới thiệu sản phẩm & Bài toán giải quyết
+## 🧭 BỐN CÂU HỎI ĐẦU RA THEO CHUẨN LAB 8
 
-**HueLegend** là nền tảng Web3 DApp chuyên biệt hóa cho việc bảo hộ và truy xuất nguồn gốc chuỗi cung ứng các đặc sản truyền thống xứ Huế (Mè xửng, Tôm chua, Trà Cung đình, Tinh dầu tràm, Nón bài thơ,...).
-
-### 🔍 Bài toán thực tiễn:
-- **Cơ sở sản xuất & Làng nghề:** Cần công cụ minh bạch, bất biến trên Blockchain để chứng minh nguồn gốc xuất xứ nguyên liệu sạch đạt chuẩn OCOP, bảo vệ danh tiếng thương hiệu trước tình trạng hàng giả mạo, nhái nhãn mác tràn lan tại các điểm du lịch.
-- **Đơn vị Vận chuyển & Điểm bán lẻ:** Cần cơ chế xác nhận trách nhiệm qua chữ ký mật mã (ví Web3), lưu lại hành trình vận chuyển, điều kiện lưu kho để tránh rủi ro đền bù sai lệch.
-- **Khách mua hàng & Du khách:** Cần một phương thức nhanh chóng: chỉ cần dùng camera điện thoại quét mã QR dán trên bao bì là có thể xem toàn bộ dòng thời gian (timeline) bất biến từ lúc gieo trồng/thu hoạch đến khi lên kệ, hoàn toàn không thể bị làm giả hay tẩy xóa.
+| Câu hỏi | Câu trả lời của dự án HueLegend |
+| :--- | :--- |
+| **1. Nhóm làm gì?** | Xây dựng hệ thống Web3 DApp và Smart Contract trên Ethereum Sepolia để ghi nhận, xác thực và truy xuất lịch sử chuỗi cung ứng bất biến cho các đặc sản truyền thống xứ Huế (Mè xửng, Tôm chua, Trà Cung đình, Tinh dầu tràm, Nón bài thơ). |
+| **2. Làm cho ai?** | - **Cơ sở sản xuất & Hợp tác xã làng nghề:** Minh bạch nguồn gốc, bảo vệ thương hiệu độc quyền.<br>- **Đơn vị vận chuyển & Điểm bán lẻ:** Xác nhận trách nhiệm bàn giao rõ ràng.<br>- **Du khách & Người tiêu dùng:** Quét mã QR kiểm chứng hàng thật, an tâm về chất lượng. |
+| **3. Quy tắc chính là gì?** | 1. **Khởi tạo lô:** Chỉ cơ sở có `ROLE_PRODUCER` mới được tạo mã lô duy nhất kèm thông tin xưởng.<br>2. **Thêm chặng theo vai:** Phải có đúng vai trò (`ROLE_LOGISTICS`, `ROLE_RETAILER`,...) mới được ký giao dịch ghi nhận chặng.<br>3. **Chống gian lận:** Mạo danh bị revert ngay lập tức (`UnauthorizedCaller`); cơ sở gian lận bị tịch thu cọc 0.05 ETH trích thưởng 50% cho người tố giác.<br>4. **Tra cứu tự do:** Người mua quét QR xem dòng thời gian (timeline) hoàn toàn miễn phí gas. |
+| **4. Mỗi thành viên chịu trách nhiệm phần nào?** | - **Ngô Thị Thuỷ Vân:** Vai chính Lab 8–11: Hợp đồng (Smart Contract) \| Vai chính Lab 12–15: Kiểm thử (QA & Audit).<br>- **Lê Thị Thảo Nhi:** Vai chính Lab 8–11: Đặc tả (SPEC & BA) \| Vai chính Lab 12–15: Giao diện (Frontend DApp).<br>- **Trần Văn Nhật Minh:** Vai chính Lab 8–11: Giao diện (Frontend DApp) \| Vai chính Lab 12–15: Đặc tả (SPEC & Gate Review).<br>- **Nguyễn Hoàng Phúc:** Vai chính Lab 8–11: Kiểm thử (Test Cases) \| Vai chính Lab 12–15: Hợp đồng (Smart Contract Core). |
 
 ---
 
-## 🚀 2. Luồng cốt lõi Demo (Core Workflow)
+## 🚀 Luồng cốt lõi Demo (Core Workflow)
 
 ```
 [1. Tạo lô đặc sản]           [2. Thêm chặng bởi đúng vai]           [3. Quét QR xem lịch sử]
@@ -27,62 +28,55 @@ Dự án nghiên cứu & ứng dụng hợp đồng thông minh thuộc học ph
 - Tự động sinh mã QR động           - Ngăn chặn mạo danh (Revert)      - Đối soát TxHash Sepolia
 ```
 
-1. **Tạo lô (Create Batch):** Cơ sở sản xuất (`ROLE_PRODUCER`) đưa thông tin lô hàng lên hợp đồng `ProjectCore.sol` kèm vùng nguyên liệu và mã định danh. Hệ thống tự sinh mã QR Code.
-2. **Thêm chặng bởi đúng vai (Role-based Checkpoint):** Đơn vị vận chuyển (`ROLE_LOGISTICS`), cơ quan kiểm định (`ROLE_INSPECTOR`) hay cửa hàng bán lẻ (`ROLE_RETAILER`) tiếp nhận hàng và ký giao dịch ghi nhận chặng. Hệ thống tự động từ chối (`revert UnauthorizedCaller`) nếu địa chỉ ví chưa được cấp quyền tương ứng (phòng chống gian lận).
-3. **Quét QR xem lịch sử (Scan & Trace):** Người tiêu dùng quét mã QR để tra cứu trực tiếp toàn bộ các chặng trên blockchain miễn phí gas.
-
 ---
 
-## 📂 3. Cấu trúc thư mục dự án (Chuẩn Lab 8)
+## 📂 Cấu trúc thư mục dự án (Chuẩn Lab 8)
 
 ```text
 HueLegend/
-├── README.md               # Giới thiệu sản phẩm, bài toán và hướng dẫn chạy
-├── AGENTS.md               # Quy ước kỹ thuật và nguyên tắc sinh mã cho AI
+├── README.md               # Giới thiệu sản phẩm, chuẩn 4 câu hỏi đầu ra và hướng dẫn chạy
+├── AGENTS.md               # Quy ước kỹ thuật và nguyên tắc sinh mã cho công cụ AI
+├── lab08.md                # Tóm tắt thực hành Lab 8 và mẫu commit nộp bài
 ├── docs/
-│   ├── PROJECT_PLAN.md     # Kế hoạch dự án, phân công vai trò và mốc công việc
-│   ├── SPEC.md             # Đặc tả yêu cầu kỹ thuật và quy tắc nghiệp vụ
-│   ├── AI_JOURNAL.md       # Nhật ký làm việc cùng AI và các lỗi bảo mật phát hiện
-│   ├── ECONOMIC_RULES.md   # Quy tắc kinh tế, ký quỹ uy tín và cơ chế phạt gian lận
+│   ├── PROJECT_PLAN.md     # Kế hoạch dự án, phân công vai trò (xoay vai) và mốc công việc
+│   ├── SPEC.md             # Đặc tả 4 quy tắc kiểm thử được (Ai làm gì, khi nào, giới hạn, lỗi)
+│   ├── AI_JOURNAL.md       # Nhật ký AI và 5 phản biện lạm dụng kèm biện pháp xử lý rủi ro
+│   ├── ECONOMIC_RULES.md   # 4 mục kinh tế: dòng tiền, chống lạm dụng, quản trị, người dùng thiệt
 │   └── PRESENTATION_PLAN.md# Kịch bản demo và phân công thuyết trình bảo vệ
 ├── contracts/
-│   ├── training/           # Bài mẫu học kỹ thuật (ClassPoint, TimeLockVault...)
+│   ├── training/           # 4 bài mẫu học kỹ thuật cho Lab 9, 10, 13 (ClassPoint, TimeLockVault...)
 │   └── project/
-│       └── ProjectCore.sol # Hợp đồng thông minh cốt lõi của HueLegend
+│       └── ProjectCore.sol # Hợp đồng thông minh cốt lõi của HueLegend (Solidity ^0.8.20, CEI)
 ├── test/
-│   └── ProjectCore.test.js # Bộ kiểm thử tự động (bao gồm ca gian lận TC-03)
+│   └── ProjectCore.test.js # Bộ kiểm thử tự động (bao gồm ca kiểm thử gian lận TC-03)
 ├── web/
-│   └── index.html          # Giao diện Web3 DApp sản phẩm (Huế Royal Theme)
+│   └── index.html          # Giao diện Web3 DApp (Huế Royal Theme, sinh QR động & Timeline)
 └── evidence/
     └── lab-08...lab-15/    # Biên bản, ảnh chụp màn hình và TxHash từng lab
 ```
 
 ---
 
-## ⚙️ 4. Hướng dẫn cài đặt & Chạy sản phẩm
+## ⚙️ Hướng dẫn chạy và Kiểm thử
 
-### 4.1. Mở giao diện Web DApp:
-- Mở trực tiếp tệp [`web/index.html`](./web/index.html) bằng trình duyệt web (Google Chrome, MS Edge, Brave).
-- Hoặc sử dụng Live Server / VS Code / Antigravity Webview.
-- Giao diện tích hợp sẵn **Interactive Demo Engine** với dữ liệu mẫu các đặc sản Huế và bộ tạo mã QR động chạy ngay lập tức.
+### 1. Trải nghiệm Giao diện Web3 DApp:
+- Mở trực tiếp tệp [`web/index.html`](./web/index.html) bằng trình duyệt web.
+- Giao diện có sẵn **Interactive Demo Engine** với dữ liệu mẫu đặc sản Huế (Mè xửng Thiên Hương, Tôm chua Trọng Tín, Trà Cung Đình) và sinh mã QR động trực tiếp.
 
-### 4.2. Biên dịch & Triển khai Smart Contract qua Remix IDE:
+### 2. Biên dịch Hợp đồng qua Remix IDE:
 1. Mở [Remix IDE](https://remix.ethereum.org).
 2. Tải tệp [`contracts/project/ProjectCore.sol`](./contracts/project/ProjectCore.sol) lên Remix.
-3. Chọn trình biên dịch Solidity phiên bản `0.8.20` hoặc `0.8.24`.
-4. Triển khai hợp đồng lên môi trường **Injected Provider - MetaMask** (Mạng Ethereum Sepolia Testnet).
+3. Chọn compiler `0.8.20`, chọn Deploy môi trường `Injected Provider - MetaMask` (Mạng Sepolia Testnet).
 
-### 4.3. Chạy kiểm thử tự động:
+### 3. Chạy ca kiểm thử tự động:
 ```bash
 npx hardhat test test/ProjectCore.test.js
 ```
 
 ---
 
-## 🌐 5. Thông tin triển khai & Đường dẫn chạy thật
+## 🌐 Thông tin triển khai & Bằng chứng thực nghiệm
 
-- **Mạng Blockchain:** Ethereum Sepolia Testnet
-- **Địa chỉ ví Admin / Triển khai:** `0x82d022a704706B2f144863D619D7418F8a0f19A7`
-- **Địa chỉ Hợp đồng thông minh:** *(Cập nhật sau khi deploy Sepolia ở Lab 11)*
-- **Liên kết Demo Web DApp:** [Mở DApp cục bộ tại `web/index.html`](./web/index.html)
-- **Mẫu commit chuẩn:** `lab-08: [khoi tao cau truc du an HueLegend]`
+- **Mạng:** Ethereum Sepolia Testnet
+- **Địa chỉ ví Admin / Deployer:** `0x82d022a704706B2f144863D619D7418F8a0f19A7`
+- **Mã commit nộp bài:** `lab-08: khoi tao codebase nhom va dac ta v0.1`
