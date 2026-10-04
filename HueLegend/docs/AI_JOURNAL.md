@@ -1,4 +1,4 @@
-# AI_JOURNAL — NHẬT KÝ SỬ DỤNG AI VÀ LỖI ĐÃ PHÁT HIỆN (LAB 8)
+# AI_JOURNAL — NHẬT KÝ SỬ DỤNG AI VÀ LỖI ĐÃ PHÁT HIỆN
 
 Dự án: **HueLegend — Nền tảng Truy xuất Đặc sản Huế trên Blockchain**  
 Học phần: **ECO2432 — Tiền điện tử & Hợp đồng thông minh**  
@@ -6,7 +6,7 @@ Trợ lý AI: **Antigravity IDE (Gemini 3.8 Flash)**
 
 ---
 
-## 1. Phiên làm việc khởi tạo cấu trúc dự án & Đặc tả v0.1
+## 1. Phiên làm việc khởi tạo cấu trúc dự án & Đặc tả v0.1 (Lab 8)
 
 ### Câu lệnh (Prompt) đưa vào:
 > *"Tạo cấu trúc dự án chuẩn Lab 8 cho dự án HueLegend về Truy xuất đặc sản Huế. Giải quyết bài toán cơ sở sản xuất và khách mua cần lịch sử lô hàng bất biến. Luồng cốt lõi demo: Tạo lô -> thêm chặng bởi đúng vai -> quét QR xem lịch sử. Tuân thủ tuyệt đối AGENTS.md (Solidity ^0.8.20, CEI, custom error, event, chú thích không dấu, tối thiểu 3 test case gồm ca gian lận)."*
@@ -49,8 +49,35 @@ Nhóm đã sử dụng prompt chuẩn được quy định trong tài liệu Lab
 
 ---
 
-## 3. Các lỗi kỹ thuật trong mã nguồn được phát hiện và khắc phục
+## 3. Các lỗi kỹ thuật trong mã nguồn được phát hiện và khắc phục (Lab 8)
 
 1. **Lỗi mạo danh vai trò (Role Impersonation):** Ban đầu hàm `addCheckpoint` chỉ nhận chuỗi tên vai trò mà không kiểm tra `msg.sender` có quyền hay không. Nhóm đã bổ sung hằng số `bytes32` (`ROLE_PRODUCER`, `ROLE_LOGISTICS`,...) và kiểm tra `_roles[msg.sender][role]` nghiêm ngặt.
 2. **Lỗi tốn gas do revert string dài:** Đã chuyển toàn bộ sang Custom Errors của Solidity `^0.8.20` (`BatchAlreadyExists`, `UnauthorizedCaller`,...).
 3. **Tuân thủ quy ước AGENTS.md:** Đã chuẩn hóa toàn bộ chú thích trong hợp đồng sang **tiếng Việt không dấu**.
+
+---
+
+## 4. Phiên làm việc Lab 9: Két tiết kiệm có khóa thời gian (TimeLockVault) & Áp dụng vào ProjectCore
+
+### 4.1. Câu lệnh (Prompt) đưa vào theo yêu cầu Bước 2:
+> *"Viết hợp đồng Solidity theo SPEC.md, tuân thủ AGENTS.md. Giải thích lựa chọn thiết kế trước khi đưa mã nguồn."*
+
+### 4.2. Giải thích lựa chọn thiết kế kỹ thuật:
+- **Tách bạch luồng Nạp (`deposit`) và Rút (`withdraw`):** Bất kỳ ai cũng nạp được tiền vào két (`external payable`), nhưng quyền rút chỉ dành riêng cho người tạo két (`owner`).
+- **Khóa thời gian bằng `block.timestamp`:** Khởi tạo `unlockTime = block.timestamp + lockDurationSeconds`. Trước mốc thời gian này, hợp đồng từ chối mọi yêu cầu rút tiền với lỗi `StillLocked(unlockAt, currentTime)`.
+- **Áp dụng mô hình Checks — Effects — Interactions (CEI):**
+  1. *Checks:* Kiểm tra quyền sở hữu (`msg.sender == owner`), kiểm tra thời gian (`block.timestamp >= unlockTime`), kiểm tra số dư (`amount > 0`).
+  2. *Effects:* Phát sự kiện `Withdrawn` và cập nhật trạng thái trước khi chuyển tiền ra ngoài.
+  3. *Interactions:* Chuyển ETH bằng phương thức an toàn `(bool ok, ) = payable(owner).call{value: amount}("")` thay cho `transfer` để chống lỗi giới hạn 2.300 gas.
+
+### 4.3. Đối chiếu với bản mẫu giảng viên và 4 điểm cốt lõi cần hiểu (Bước 3):
+1. **Thứ tự Checks — Effects — Interactions:** Giúp ngăn chặn triệt để tấn công Reentrancy (sẽ thực hành khai thác lỗ hổng đảo ngược thứ tự này ở Lab 13).
+2. **Custom Errors thay cho chuỗi revert dài:** Tiết kiệm khoảng 20-40% chi phí gas triển khai và hoàn trả gần như toàn bộ gas khi giao dịch bị hoàn tác sớm ở bước Checks.
+3. **`call` thay cho `transfer`:** Khắc phục nhược điểm giới hạn 2.300 gas của `transfer`, tương thích tốt với tài khoản ví hợp đồng thông minh (Smart Contract Wallets / Account Abstraction).
+4. **Từ khóa `indexed` trong sự kiện:** Đánh dấu địa chỉ `from` và `to` giúp DApp và Etherscan lập chỉ mục (index) tra cứu lịch sử nạp/rút tức thì.
+
+### 4.4. Chuyển kỹ thuật vào sản phẩm nhóm (`ProjectCore.sol`):
+- Nhóm đã khoanh vùng và tích hợp mô hình ký gửi có khóa thời gian vào cơ chế **Ký quỹ bảo đảm uy tín làng nghề (Reputation Staking with TimeLock)**:
+  - Cơ sở sản xuất nộp cọc `0.05 ETH` qua `depositStake() payable`.
+  - Tiền cọc bị khóa trong `stakeLockDuration` (30 ngày) và cơ sở chỉ được rút cọc qua `withdrawStake()` theo đúng thứ tự CEI sau khi hết thời hạn.
+- **Kết quả biên dịch:** Hợp đồng `ProjectCore.sol` và `TimeLockVault.sol` biên dịch sạch 100% trên trình biên dịch Solidity `^0.8.20`.

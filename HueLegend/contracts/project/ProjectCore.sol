@@ -4,18 +4,23 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title ProjectCore (HueLegend Traceability Core)
- * @dev Hop dong thong minh truy xuat nguon goc dac san Hue tren Blockchain.
- * Quan ly lo hang, phan quyen cac vai tro trong chuoi cung ung va ghi nhan lich su bat bien.
+ * @title ProjectCore (HueLegend Traceability & TimeLock Escrow Core)
+ * @dev Hop dong thong minh truy xuat nguon goc dac san Hue ket hop co che ky quy co khoa thoi gian (Lab 9).
+ * Ap dung day du 4 nguyen tac: Phan quyen, Su kien (indexed), Loi tuy bien va mo hinh Checks-Effects-Interactions (CEI).
  */
 contract ProjectCore is Ownable {
-    // Dinh nghia cac vai tro trong he thong truy xuat nguon goc
+    // ================= 1. DINH NGHIA VAI TRO (RBAC) =================
     bytes32 public constant ROLE_ADMIN = keccak256("ROLE_ADMIN");
     bytes32 public constant ROLE_PRODUCER = keccak256("ROLE_PRODUCER");       // Co so san xuat dac san Hue (Me xung, Tom chua, Tra sen...)
     bytes32 public constant ROLE_LOGISTICS = keccak256("ROLE_LOGISTICS");     // Don vi van chuyen / luu kho
     bytes32 public constant ROLE_RETAILER = keccak256("ROLE_RETAILER");       // Dai ly phan phoi / Cua hang ban le
-    bytes32 public constant ROLE_INSPECTOR = keccak256("ROLE_INSPECTOR");     // Co quan kiem dinh chat luong / Ban quan ly OCOP
+    bytes32 public constant ROLE_INSPECTOR = keccak256("ROLE_INSPECTOR");     // Co quan kiem dinh chat luong OCOP
 
+    // Tham so ky quy bao dam uy tin lang nghe
+    uint256 public constant MIN_STAKE_AMOUNT = 0.05 ether;
+    uint256 public stakeLockDuration = 30 days; // Thoi gian khoa coc mac dinh
+
+    // ================= 2. CAU TRUC DU LIEU (STRUCTS) =================
     // Cau truc mot chang trong lich su hanh trinh lo hang
     struct Checkpoint {
         uint256 timestamp;     // Thoi gian ghi nhan tren blockchain
@@ -37,26 +42,32 @@ contract ProjectCore is Ownable {
         bool exists;           // Co ton tai hay khong
     }
 
-    // Bang luu tru lo hang theo ma lo
+    // ================= 3. BANG LUU TRU TRANG THAI (STATE STORAGE) =================
     mapping(string => Batch) private _batches;
-
-    // Danh sach cac chang lich su theo tung ma lo hang
     mapping(string => Checkpoint[]) private _batchCheckpoints;
-
-    // Danh sach tat ca cac ma lo hang da tao
     string[] private _allBatchCodes;
 
-    // Bang phan quyen dia chi vi theo vai tro: account => role => isGranted
+    // Phan quyen: account => role => isGranted
     mapping(address => mapping(bytes32 => bool)) private _roles;
 
-    // ================= CAC LOI TUY BIEN (CUSTOM ERRORS) =================
+    // Quan ly ky quy co khoa thoi gian (TimeLock Staking) cua tung co so san xuat
+    mapping(address => uint256) public producerStake;
+    mapping(address => uint256) public producerUnlockTime;
+
+    // ================= 4. CAC LOI TUY BIEN (CUSTOM ERRORS) =================
+    // Tiet kiem gas trien khai va tra ve du lieu tham so chi tiet
     error BatchAlreadyExists(string batchCode);
     error BatchNotFound(string batchCode);
     error UnauthorizedCaller(address caller, bytes32 requiredRole);
     error EmptyString(string paramName);
     error InvalidAddress();
+    error ZeroAmount();
+    error StillLocked(uint256 unlockAt, uint256 currentTime);
+    error NothingToWithdraw();
+    error TransferFailed();
+    error StakeTooLow(uint256 provided, uint256 minimum);
 
-    // ================= CAC SU KIEN (EVENTS) =================
+    // ================= 5. CAC SU KIEN (EVENTS VOI INDEXED) =================
     event BatchCreated(
         string indexed batchCode,
         string productName,
@@ -82,9 +93,13 @@ contract ProjectCore is Ownable {
     event RoleAssigned(address indexed account, bytes32 indexed role);
     event RoleRevoked(address indexed account, bytes32 indexed role);
 
+    // Su kien nap va rut tien ky quy khoa thoi gian (TimeLock Events)
+    event StakeDeposited(address indexed producer, uint256 amount, uint256 unlockTime);
+    event StakeWithdrawn(address indexed producer, uint256 amount);
+    event StakeLockDurationUpdated(uint256 oldDuration, uint256 newDuration);
+
     // ================= HAM KHOI TAO =================
     constructor() Ownable(msg.sender) {
-        // Mac dinh nguoi trien khai hop dong giu quyen Admin va Producer ban dau
         _roles[msg.sender][ROLE_ADMIN] = true;
         _roles[msg.sender][ROLE_PRODUCER] = true;
 
@@ -101,36 +116,88 @@ contract ProjectCore is Ownable {
     }
 
     // ================= QUAN LY PHAN QUYEN =================
-    /**
-     * @dev Cap quyen vai tro cho mot dia chi vi (Chi chu so huu / Admin moi co quyen)
-     */
     function grantRole(address account, bytes32 role) external onlyOwner {
         if (account == address(0)) revert InvalidAddress();
         _roles[account][role] = true;
         emit RoleAssigned(account, role);
     }
 
-    /**
-     * @dev Thu hoi quyen vai tro cua mot dia chi vi
-     */
     function revokeRole(address account, bytes32 role) external onlyOwner {
         if (account == address(0)) revert InvalidAddress();
         _roles[account][role] = false;
         emit RoleRevoked(account, role);
     }
 
-    /**
-     * @dev Kiem tra dia chi vi co nam giu vai tro cu the hay khong
-     */
     function hasRole(address account, bytes32 role) external view returns (bool) {
         if (account == owner()) return true;
         return _roles[account][role];
     }
 
-    // ================= LUONG NGHIEP VU COT LOI =================
+    function setStakeLockDuration(uint256 newDuration) external onlyOwner {
+        uint256 old = stakeLockDuration;
+        stakeLockDuration = newDuration;
+        emit StakeLockDurationUpdated(old, newDuration);
+    }
+
+    // ================= KY GUI CO KHOA THOI GIAN (TIMELOCK STAKING) =================
     /**
-     * @dev 1. Tao lo hang dac san moi (Chi co so san xuat moi duoc tao)
-     * Ap dung mo hinh Checks-Effects-Interactions
+     * @dev Nap tien ky quy cam ket chat luong dac san Hue, tien bi khoa trong stakeLockDuration
+     */
+    function depositStake() external payable {
+        // 1. Checks
+        if (msg.value == 0) revert ZeroAmount();
+        if (msg.value < MIN_STAKE_AMOUNT && producerStake[msg.sender] == 0) {
+            revert StakeTooLow(msg.value, MIN_STAKE_AMOUNT);
+        }
+
+        // 2. Effects
+        producerStake[msg.sender] += msg.value;
+        uint256 unlockAt = block.timestamp + stakeLockDuration;
+        producerUnlockTime[msg.sender] = unlockAt;
+
+        // 3. Interactions (Phat su kien sau khi cap nhat trang thai)
+        emit StakeDeposited(msg.sender, msg.value, unlockAt);
+    }
+
+    /**
+     * @dev Rut tien ky quy sau khi het thoi gian khoa, tuan thu nghiem ngat CEI va call
+     */
+    function withdrawStake() external {
+        // 1. Checks - Kiem tra dieu kien truoc
+        uint256 amount = producerStake[msg.sender];
+        if (amount == 0) revert NothingToWithdraw();
+
+        uint256 unlockAt = producerUnlockTime[msg.sender];
+        if (block.timestamp < unlockAt) {
+            revert StillLocked(unlockAt, block.timestamp);
+        }
+
+        // 2. Effects - Cap nhat so du ve 0 truoc khi chuyen tien
+        producerStake[msg.sender] = 0;
+        emit StakeWithdrawn(msg.sender, amount);
+
+        // 3. Interactions - Chuyen ETH bang call ra ngoai sau cung
+        (bool ok, ) = payable(msg.sender).call{value: amount}("");
+        if (!ok) revert TransferFailed();
+    }
+
+    function getStakeInfo(address producer) external view returns (
+        uint256 balance,
+        uint256 unlockAt,
+        uint256 remainingSeconds
+    ) {
+        balance = producerStake[producer];
+        unlockAt = producerUnlockTime[producer];
+        if (block.timestamp >= unlockAt) {
+            remainingSeconds = 0;
+        } else {
+            remainingSeconds = unlockAt - block.timestamp;
+        }
+    }
+
+    // ================= LUONG TRUY XUAT NGUON GOC COT LOI =================
+    /**
+     * @dev 1. Tao lo hang dac san moi (Checks-Effects-Interactions)
      */
     function createBatch(
         string calldata batchCode,
@@ -138,13 +205,13 @@ contract ProjectCore is Ownable {
         string calldata origin,
         string calldata initialMetadataURI
     ) external onlyRole(ROLE_PRODUCER) {
-        // Checks
+        // 1. Checks
         if (bytes(batchCode).length == 0) revert EmptyString("batchCode");
         if (bytes(productName).length == 0) revert EmptyString("productName");
         if (bytes(origin).length == 0) revert EmptyString("origin");
         if (_batches[batchCode].exists) revert BatchAlreadyExists(batchCode);
 
-        // Effects
+        // 2. Effects
         _batches[batchCode] = Batch({
             batchCode: batchCode,
             productName: productName,
@@ -157,7 +224,7 @@ contract ProjectCore is Ownable {
 
         _allBatchCodes.push(batchCode);
 
-        // Tu dong ghi nhan chang dau tien: Khoi tao lo dac san tai co so
+        // Tu dong tao chang 0: Khoi tao tai co so san xuat
         _batchCheckpoints[batchCode].push(Checkpoint({
             timestamp: block.timestamp,
             recorder: msg.sender,
@@ -167,7 +234,7 @@ contract ProjectCore is Ownable {
             metadataURI: initialMetadataURI
         }));
 
-        // Interactions (Phat su kien thay doi trang thai)
+        // 3. Interactions
         emit BatchCreated(batchCode, productName, msg.sender, block.timestamp);
         emit CheckpointAdded(
             batchCode,
@@ -181,7 +248,6 @@ contract ProjectCore is Ownable {
 
     /**
      * @dev 2. Them chang hanh trinh boi dung vai tro
-     * Dia chi goi ham phai duoc cap dung vai tro `role` truyen vao
      */
     function addCheckpoint(
         string calldata batchCode,
@@ -190,7 +256,7 @@ contract ProjectCore is Ownable {
         string calldata action,
         string calldata metadataURI
     ) external {
-        // Checks
+        // 1. Checks
         if (!_batches[batchCode].exists) revert BatchNotFound(batchCode);
         if (!_roles[msg.sender][role] && msg.sender != owner()) {
             revert UnauthorizedCaller(msg.sender, role);
@@ -198,7 +264,7 @@ contract ProjectCore is Ownable {
         if (bytes(location).length == 0) revert EmptyString("location");
         if (bytes(action).length == 0) revert EmptyString("action");
 
-        // Effects
+        // 2. Effects
         _batchCheckpoints[batchCode].push(Checkpoint({
             timestamp: block.timestamp,
             recorder: msg.sender,
@@ -208,7 +274,7 @@ contract ProjectCore is Ownable {
             metadataURI: metadataURI
         }));
 
-        // Interactions
+        // 3. Interactions
         emit CheckpointAdded(
             batchCode,
             msg.sender,
@@ -220,17 +286,17 @@ contract ProjectCore is Ownable {
     }
 
     /**
-     * @dev Kiem dinh lo hang boi co quan giam dinh / OCOP
+     * @dev 3. Kiem dinh va chung nhan OCOP
      */
     function verifyBatch(
         string calldata batchCode,
         string calldata inspectorNote,
         string calldata certificateURI
     ) external onlyRole(ROLE_INSPECTOR) {
-        // Checks
+        // 1. Checks
         if (!_batches[batchCode].exists) revert BatchNotFound(batchCode);
 
-        // Effects
+        // 2. Effects
         _batches[batchCode].isVerified = true;
 
         _batchCheckpoints[batchCode].push(Checkpoint({
@@ -242,7 +308,7 @@ contract ProjectCore is Ownable {
             metadataURI: certificateURI
         }));
 
-        // Interactions
+        // 3. Interactions
         emit BatchVerified(batchCode, msg.sender, block.timestamp);
         emit CheckpointAdded(
             batchCode,
@@ -254,33 +320,21 @@ contract ProjectCore is Ownable {
         );
     }
 
-    // ================= 3. TRUY VAN XEM LICH SU (QUET QR) =================
-    /**
-     * @dev Lay thong tin tong quan cua lo hang theo ma lo
-     */
+    // ================= 4. TRUY VAN XEM LICH SU (QUET QR) =================
     function getBatch(string calldata batchCode) external view returns (Batch memory) {
         if (!_batches[batchCode].exists) revert BatchNotFound(batchCode);
         return _batches[batchCode];
     }
 
-    /**
-     * @dev Lay toan bo danh sach cac chang lich su cua lo hang de hien thi timeline
-     */
     function getCheckpoints(string calldata batchCode) external view returns (Checkpoint[] memory) {
         if (!_batches[batchCode].exists) revert BatchNotFound(batchCode);
         return _batchCheckpoints[batchCode];
     }
 
-    /**
-     * @dev Lay tong so luong lo hang da khoi tao trong he thong
-     */
     function getTotalBatches() external view returns (uint256) {
         return _allBatchCodes.length;
     }
 
-    /**
-     * @dev Lay ma lo hang theo chi muc (index)
-     */
     function getBatchCodeByIndex(uint256 index) external view returns (string memory) {
         return _allBatchCodes[index];
     }

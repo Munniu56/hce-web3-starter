@@ -1,4 +1,4 @@
-# SPEC — ĐẶC TẢ NGHIỆP VỤ HỆ THỐNG TRUY XUẤT ĐẶC SẢN HUẾ (HUELEGEND v0.1)
+# SPEC — ĐẶC TẢ NGHIỆP VỤ HỆ THỐNG TRUY XUẤT ĐẶC SẢN HUẾ (HUELEGEND v0.2)
 
 ## 1. Mục đích
 Hệ thống **HueLegend** ứng dụng công nghệ Blockchain (Ethereum Sepolia) nhằm minh bạch hóa toàn diện chuỗi cung ứng các đặc sản truyền thống xứ Huế (Mè xửng, Tôm chua, Trà Cung đình, Tinh dầu tràm, Nón bài thơ). Hệ thống cung cấp cơ chế lưu trữ lịch sử bất biến on-chain giúp bảo vệ uy tín các làng nghề OCOP và trao quyền cho người tiêu dùng tự kiểm chứng nguồn gốc sản phẩm qua mã QR.
@@ -21,18 +21,18 @@ Hệ thống **HueLegend** ứng dụng công nghệ Blockchain (Ethereum Sepoli
 - Tên đặc sản (`productName`): tên sản phẩm làng nghề được bảo hộ.
 - Vùng nguyên liệu (`origin`): địa danh xuất xứ nguyên liệu sạch tại Thừa Thiên Huế.
 - Thông tin chặng: địa điểm (`location`), hành động thực hiện (`action`), đường dẫn chứng từ kiểm định (`metadataURI`).
+- Tiền nạp ký quỹ bảo đảm uy tín làng nghề (`msg.value`).
 - Chữ ký xác thực của ví Web3 gửi giao dịch (`msg.sender`).
 
 ### 3.2. Dữ liệu đầu ra
 - Lịch sử chuỗi cung ứng bất biến dạng dòng thời gian (Timeline) bao gồm: thời gian khối, người ký, vai trò, địa điểm, hành động, mã băm giao dịch (TxHash).
 - Mã phản hồi nhanh (QR Code) động liên kết trực tiếp đến trang tra cứu lô hàng.
 - Trạng thái kiểm định OCOP (`isVerified`: `true`/`false`).
+- Số dư tiền ký quỹ và thời gian mở khóa cọc của cơ sở sản xuất.
 
 ---
 
-## 4. Bốn quy tắc nghiệp vụ cốt lõi có thể kiểm thử (Testable Rules)
-
-Hệ thống được kiểm soát nghiêm ngặt bởi 4 quy tắc nền tảng thỏa mãn cấu trúc: **Ai được làm gì | Khi nào | Giới hạn bao nhiêu | Lỗi thì sao**:
+## 4. Bốn quy tắc nghiệp vụ chuỗi cung ứng cốt lõi (Core Supply Chain Rules)
 
 ### Quy tắc 1 (Khởi tạo lô đặc sản - Batch Creation)
 - **Ai được làm gì:** Chỉ địa chỉ ví được cấp quyền `ROLE_PRODUCER` (hoặc `owner`) mới được gọi hàm `createBatch`.
@@ -61,40 +61,24 @@ Hệ thống được kiểm soát nghiêm ngặt bởi 4 quy tắc nền tảng
 - **Ai được làm gì:** Bất kỳ ai (Khách du lịch, người tiêu dùng, thanh tra thị trường) đều có thể gọi các hàm truy vấn `getBatch` và `getCheckpoints`.
 - **Khi nào:** Bất kỳ lúc nào, thông qua trình duyệt hoặc quét camera mã QR trên bao bì sản phẩm.
 - **Giới hạn bao nhiêu:** Không giới hạn số lần truy vấn, không yêu cầu người dùng phải sở hữu ví Web3 hay có số dư ETH (hàm `view` đọc dữ liệu off-chain hoàn toàn miễn phí gas).
-- **Lỗi thì sao:** Nếu nhập mã lô không tồn tại $\rightarrow$ Revert `BatchNotFound(batchCode)` (trên giao diện hiển thị thông báo "Không tìm thấy lô hàng, cảnh báo nguy cơ hàng giả").
+- **Lỗi thì sao:** Nếu nhập mã lô không tồn tại $\rightarrow$ Revert `BatchNotFound(batchCode)`.
 
 ---
 
-## 5. Cấu trúc dữ liệu chi tiết
+## 5. Đặc tả mô hình Két Ký quỹ Khóa thời gian (Áp dụng từ Lab 9 TimeLockVault)
 
-```solidity
-struct Checkpoint {
-    uint256 timestamp;     // Thoi diem xac thuc tren block
-    address recorder;      // Dia chi vi nguoi ky xac thuc
-    bytes32 role;          // Vai tro cua nguoi ky
-    string location;       // Dia diem thuc hien
-    string action;         // Hanh dong thuc hien
-    string metadataURI;    // Link IPFS chung tu / hinh anh
-}
+Học phần Lab 9 cung cấp nền tảng **Két tiết kiệm có khóa thời gian (`TimeLockVault`)** — mô hình ký gửi có điều kiện, nền móng của cơ chế giữ hộ tiền cọc bảo đảm chất lượng của làng nghề trong HueLegend.
 
-struct Batch {
-    string batchCode;      // Ma dinh danh lo hang
-    string productName;    // Ten dac san Hue
-    string origin;         // Vung nguyen lieu
-    uint256 createdAt;     // Thoi gian khoi tao
-    address producer;      // Vi co so san xuat
-    bool isVerified;       // Trang thai chung nhan OCOP
-    bool exists;           // Trang thai ton tai
-}
-```
+### 5.1. Năm quy tắc chuẩn của Két khóa thời gian (TimeLockVault Rules)
+- **R-TL1:** Ai cũng nạp được tiền vào két (`deposit() payable`).
+- **R-TL2:** Chỉ người tạo két (`owner`) mới có quyền rút tiền (`withdraw()`).
+- **R-TL3:** Chỉ rút được tiền khi thời điểm hiện tại của block đã qua mốc mở khóa (`block.timestamp >= unlockTime`).
+- **R-TL4:** Số tiền nạp vào két phải lớn hơn 0 (`msg.value > 0`), nạp 0 sẽ bị từ chối với lỗi `ZeroAmount()`.
+- **R-TL5:** Mọi lần nạp và rút tiền đều phải phát sự kiện (`Deposited`, `Withdrawn`) có đánh dấu `indexed` để phục vụ tra cứu minh bạch.
 
----
-
-## 6. Xử lý ngoại lệ và Phòng chống gian lận
-
-| Tình huống giả định | Hành vi hệ thống | Mã lỗi trả về |
-| :--- | :--- | :--- |
-| Kẻ xấu (ví bất kỳ) cố tình mạo danh đơn vị kiểm định để thêm tem giả | Hợp đồng kiểm tra `_roles[msg.sender][ROLE_INSPECTOR]` thất bại | Revert `UnauthorizedCaller` |
-| Cơ sở sản xuất tạo mã lô rỗng `""` | Kiểm tra độ dài `bytes(batchCode).length == 0` | Revert `EmptyString("batchCode")` |
-| Quét mã QR lô hàng không tồn tại trên chuỗi | Không tìm thấy trong mapping `_batches` | Revert `BatchNotFound` |
-| Đơn vị vận chuyển cố tình ghi nhận chặng vào lô hàng chưa từng được tạo | Báo lỗi không tìm thấy lô hàng | Revert `BatchNotFound` |
+### 5.2. Chuyển giao kỹ thuật vào luồng cốt lõi của HueLegend (`ProjectCore.sol`)
+Trong dự án HueLegend, nhóm chuyển giao trọn vẹn 4 kỹ thuật cốt lõi vừa học vào chức năng **Ký quỹ bảo đảm uy tín làng nghề (Reputation Staking with TimeLock)**:
+1. **Phân quyền chặt chẽ:** Chỉ ví sở hữu `ROLE_PRODUCER` nộp tiền cọc và chỉ chính ví đó mới được rút cọc khi hết hạn.
+2. **Sự kiện minh bạch:** Phát `StakeDeposited(producer, amount, unlockTime)` và `StakeWithdrawn(producer, amount)`.
+3. **Lỗi tùy biến (Custom Errors):** `StakeTooLow()`, `StillLocked(unlockAt, currentTime)`, `NothingToWithdraw()`, `TransferFailed()`.
+4. **Quy trình Checks — Effects — Interactions (CEI):** Kiểm tra điều kiện thời gian trước $\rightarrow$ Xóa số dư cọc về 0 $\rightarrow$ Phát sự kiện $\rightarrow$ Chuyển ETH ra ngoài bằng `call{value: ...}("")`.

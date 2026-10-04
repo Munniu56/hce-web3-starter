@@ -79,4 +79,5 @@ npx hardhat test test/ProjectCore.test.js
 
 - **Mạng:** Ethereum Sepolia Testnet
 - **Địa chỉ ví Admin / Deployer:** `0x82d022a704706B2f144863D619D7418F8a0f19A7`
-- **Mã commit nộp bài:** `lab-08: khoi tao codebase nhom va dac ta v0.1`
+- **Mã commit nộp bài Lab 8:** `lab-08: khoi tao codebase nhom va dac ta v0.1`
+- **Mã commit nộp bài Lab 9:** `lab-09: contract loi bien dich duoc`
