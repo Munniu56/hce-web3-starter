@@ -62,22 +62,42 @@ Nhóm đã sử dụng prompt chuẩn được quy định trong tài liệu Lab
 ### 4.1. Câu lệnh (Prompt) đưa vào theo yêu cầu Bước 2:
 > *"Viết hợp đồng Solidity theo SPEC.md, tuân thủ AGENTS.md. Giải thích lựa chọn thiết kế trước khi đưa mã nguồn."*
 
-### 4.2. Giải thích lựa chọn thiết kế kỹ thuật:
-- **Tách bạch luồng Nạp (`deposit`) và Rút (`withdraw`):** Bất kỳ ai cũng nạp được tiền vào két (`external payable`), nhưng quyền rút chỉ dành riêng cho người tạo két (`owner`).
-- **Khóa thời gian bằng `block.timestamp`:** Khởi tạo `unlockTime = block.timestamp + lockDurationSeconds`. Trước mốc thời gian này, hợp đồng từ chối mọi yêu cầu rút tiền với lỗi `StillLocked(unlockAt, currentTime)`.
-- **Áp dụng mô hình Checks — Effects — Interactions (CEI):**
-  1. *Checks:* Kiểm tra quyền sở hữu (`msg.sender == owner`), kiểm tra thời gian (`block.timestamp >= unlockTime`), kiểm tra số dư (`amount > 0`).
-  2. *Effects:* Phát sự kiện `Withdrawn` và cập nhật trạng thái trước khi chuyển tiền ra ngoài.
-  3. *Interactions:* Chuyển ETH bằng phương thức an toàn `(bool ok, ) = payable(owner).call{value: amount}("")` thay cho `transfer` để chống lỗi giới hạn 2.300 gas.
+### 4.2. Đối chiếu với bản mẫu giảng viên và 4 điểm cốt lõi cần hiểu (Bước 3):
+1. **Thứ tự Checks — Effects — Interactions (CEI):** Kiểm tra điều kiện đầu vào trước, cập nhật trạng thái/phát sự kiện trước, và chuyển tiền ra ngoài sau cùng $\rightarrow$ Triệt tiêu nguy cơ Reentrancy.
+2. **Custom Errors thay cho chuỗi revert dài:** Tiết kiệm mã bytecode triển khai và hoàn trả gần như toàn bộ gas khi giao dịch bị hoàn tác sớm ở bước Checks.
+3. **`call` thay cho `transfer`:** Khắc phục giới hạn cứng 2.300 gas của `transfer`.
+4. **Từ khóa `indexed` trong sự kiện:** Đánh dấu địa chỉ `from` và `to` giúp DApp và Etherscan lập chỉ mục tra cứu lịch sử nạp/rút tức thì.
 
-### 4.3. Đối chiếu với bản mẫu giảng viên và 4 điểm cốt lõi cần hiểu (Bước 3):
-1. **Thứ tự Checks — Effects — Interactions:** Giúp ngăn chặn triệt để tấn công Reentrancy (sẽ thực hành khai thác lỗ hổng đảo ngược thứ tự này ở Lab 13).
-2. **Custom Errors thay cho chuỗi revert dài:** Tiết kiệm khoảng 20-40% chi phí gas triển khai và hoàn trả gần như toàn bộ gas khi giao dịch bị hoàn tác sớm ở bước Checks.
-3. **`call` thay cho `transfer`:** Khắc phục nhược điểm giới hạn 2.300 gas của `transfer`, tương thích tốt với tài khoản ví hợp đồng thông minh (Smart Contract Wallets / Account Abstraction).
-4. **Từ khóa `indexed` trong sự kiện:** Đánh dấu địa chỉ `from` và `to` giúp DApp và Etherscan lập chỉ mục (index) tra cứu lịch sử nạp/rút tức thì.
+---
 
-### 4.4. Chuyển kỹ thuật vào sản phẩm nhóm (`ProjectCore.sol`):
-- Nhóm đã khoanh vùng và tích hợp mô hình ký gửi có khóa thời gian vào cơ chế **Ký quỹ bảo đảm uy tín làng nghề (Reputation Staking with TimeLock)**:
-  - Cơ sở sản xuất nộp cọc `0.05 ETH` qua `depositStake() payable`.
-  - Tiền cọc bị khóa trong `stakeLockDuration` (30 ngày) và cơ sở chỉ được rút cọc qua `withdrawStake()` theo đúng thứ tự CEI sau khi hết thời hạn.
-- **Kết quả biên dịch:** Hợp đồng `ProjectCore.sol` và `TimeLockVault.sol` biên dịch sạch 100% trên trình biên dịch Solidity `^0.8.20`.
+## 5. Phiên làm việc Lab 10: Rà soát mã nguồn do AI sinh ra (Audit & Sửa lỗi ProjectCore)
+
+### 5.1. Rà soát hợp đồng huấn luyện `VaultBuggy.sol` (Bước 1 & 2):
+**Prompt sử dụng:**
+> *"Bạn là kiểm toán viên hợp đồng thông minh. Rà soát hợp đồng dưới đây và liệt kê mọi lỗ hổng, xếp theo mức nghiêm trọng. Với mỗi lỗ hổng, nêu: dòng số mấy, khai thác thế nào, sửa ra sao."*
+
+**Kết quả rà soát 4 lỗi trong `VaultBuggy.sol`:**
+1. **Lỗ hổng 1 (Logic ngược thời gian - Dòng 19):** Sử dụng `require(block.timestamp <= unlockTime)` thay vì `>=`. Hậu quả: Khi hết hạn khóa thì bị kẹt tiền vĩnh viễn không thể rút.
+2. **Lỗ hổng 2 (Thiếu kiểm soát quyền truy cập - Dòng 18-20):** Hàm `withdraw()` không kiểm tra `msg.sender == owner`. Bất kỳ ai cũng có thể gọi hàm để rút sạch toàn bộ số dư hợp đồng về ví mình.
+3. **Lỗ hổng 3 (Dùng transfer lỗi thời - Dòng 20):** Dùng `transfer()` giới hạn cứng 2.300 gas, có thể bị lỗi Out-of-gas nếu người nhận là ví hợp đồng thông minh.
+4. **Lỗ hổng 4 (Lộ dữ liệu nhạy cảm biến private - Dòng 8):** Khai báo `uint256 private emergencyPin;` với niềm tin sai lầm rằng `private` là bí mật.
+
+### 5.2. Chứng minh thực nghiệm Bước 3: Đọc trộm ô nhớ Slot 2 (`eth_getStorageAt`):
+Nhóm đã triển khai thực nghiệm mã kiểm thử tại [`test/VaultBuggy.test.js`](../test/VaultBuggy.test.js):
+- Triển khai hợp đồng với `_pin = 123456`.
+- Gọi hàm: `await ethers.provider.getStorage(contractAddress, 2);`
+- Giá trị trả về: `0x000000000000000000000000000000000000000000000000000000000001e240` (chính xác là `123456` ở hệ thập phân).
+> **Kết luận quan trọng:** Từ khóa `private` trong Solidity chỉ giới hạn quyền truy cập giữa các hợp đồng thông minh, **hoàn toàn không làm dữ liệu trở nên bí mật**. Mọi dữ liệu lưu trên blockchain đều có thể đọc công khai qua RPC.
+
+---
+
+### 5.3. Bảng bắt buộc kết quả Audit trên `ProjectCore.sol` (Bước 4.5):
+
+| Lỗi | Mô tả | Ai phát hiện | Cách khắc phục |
+| :---: | :--- | :---: | :--- |
+| **1** | Hàm `createBatch` chỉ kiểm tra vai trò `ROLE_PRODUCER` mà chưa kiểm tra cơ sở đã nộp đủ tiền cọc `MIN_STAKE_AMOUNT` (0.05 ETH) hay chưa, dẫn đến rủi ro cơ sở tạo lô ảo không có tài sản bảo đảm. | **AI / Sinh viên** | Thêm điều kiện kiểm tra: `if (producerStake[msg.sender] < MIN_STAKE_AMOUNT && msg.sender != owner()) revert StakeTooLow(...)`. |
+| **2** | Khi cơ sở sản xuất nạp thêm tiền cọc bổ sung vào két, hàm `depositStake()` bị lỗi reset lại mốc khóa thời gian `unlockTime` thêm 30 ngày cho toàn bộ số tiền cọc đã nạp từ trước. | **AI** | Sửa logic: Chỉ cập nhật mốc khóa mới nếu cơ sở chưa từng khóa hoặc mốc khóa cũ đã qua thời hạn (`block.timestamp >= producerUnlockTime[msg.sender]`). |
+| **3** | Mảng `_batchCheckpoints` không giới hạn số lượng chặng tối đa, kẻ xấu có thể spam gọi `addCheckpoint` hàng trăm lần gây lỗi tràn bộ nhớ (Out-of-memory / RPC limit) khi DApp gọi `getCheckpoints`. | **AI / Sinh viên** | Bổ sung giới hạn cứng `MAX_CHECKPOINTS_PER_BATCH = 50` và hoàn tác với lỗi `MaxCheckpointsExceeded` nếu vượt quá. |
+| **4** | Hàm `verifyBatch` cho phép gọi trùng lặp nhiều lần trên cùng một mã lô hàng làm rác dữ liệu, đồng thời thiếu chức năng thu hồi tem OCOP khi cơ quan chức năng phát hiện mẫu vi phạm ATVSTP. | **Sinh viên** *(Tự phát hiện)* | Thêm lỗi `BatchAlreadyVerified`, kiểm tra `!isVerified` trước khi duyệt và xây dựng thêm hàm `revokeBatchVerification()` dành riêng cho `ROLE_INSPECTOR`. |
+
+*(Toàn bộ 4 lỗi trên đã được nhóm sửa triệt để trong mã nguồn [`contracts/project/ProjectCore.sol`](../contracts/project/ProjectCore.sol) và bổ sung ca kiểm thử tự động tại [`test/ProjectCore.test.js`](../test/ProjectCore.test.js))*.

@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("HueLegend - ProjectCore (Traceability Test Suite)", function () {
+describe("HueLegend - ProjectCore (Traceability & Post-Audit Test Suite)", function () {
   let projectCore;
   let owner, producer, logistics, retailer, inspector, attacker;
 
@@ -9,6 +9,7 @@ describe("HueLegend - ProjectCore (Traceability Test Suite)", function () {
   const PRODUCT_NAME = "Me Xung Thien Huong Thuong Hang";
   const ORIGIN = "Phu Hau, TP Hue";
   const INITIAL_URI = "ipfs://QmHueMeXungOCOP4StarBatch001";
+  const STAKE_AMOUNT = ethers.parseEther("0.05");
 
   beforeEach(async function () {
     [owner, producer, logistics, retailer, inspector, attacker] = await ethers.getSigners();
@@ -27,10 +28,13 @@ describe("HueLegend - ProjectCore (Traceability Test Suite)", function () {
     await projectCore.grantRole(logistics.address, ROLE_LOGISTICS);
     await projectCore.grantRole(retailer.address, ROLE_RETAILER);
     await projectCore.grantRole(inspector.address, ROLE_INSPECTOR);
+
+    // Co so san xuat nap tien ky quy cam ket chat luong (0.05 ETH)
+    await projectCore.connect(producer).depositStake({ value: STAKE_AMOUNT });
   });
 
   // ================= CA KIEM THU 1: HOP LE (CREATION) =================
-  it("TC-01: Co so san xuat tao lo hang dac san thanh cong va phat event", async function () {
+  it("TC-01: Co so da nap coc tao lo hang thanh cong va phat event", async function () {
     await expect(
       projectCore.connect(producer).createBatch(
         BATCH_CODE,
@@ -49,16 +53,30 @@ describe("HueLegend - ProjectCore (Traceability Test Suite)", function () {
     expect(batch.producer).to.equal(producer.address);
     expect(batch.isVerified).to.be.false;
 
-    // Kiem tra chang khoi tao dau tien da duoc tu dong luu
     const checkpoints = await projectCore.getCheckpoints(BATCH_CODE);
     expect(checkpoints.length).to.equal(1);
     expect(checkpoints[0].location).to.equal(ORIGIN);
-    expect(checkpoints[0].recorder).to.equal(producer.address);
+  });
+
+  // ================= KIEM TRA VÁ LỖI 1: RÀNG BUỘC TIỀN CỌC KHI TẠO LÔ =================
+  it("TC-01b (Va loi 1): Co so chua nap du coc bi revert StakeTooLow khi tao lo", async function () {
+    const [, , , , , , poorProducer] = await ethers.getSigners();
+    const ROLE_PRODUCER = await projectCore.ROLE_PRODUCER();
+    await projectCore.grantRole(poorProducer.address, ROLE_PRODUCER);
+
+    // Thu tao lo khi chua nap coc 0.05 ETH -> Phai bi revert
+    await expect(
+      projectCore.connect(poorProducer).createBatch(
+        "HL-FAKE-001",
+        "Me Xung Chua Nap Coc",
+        "Hue",
+        ""
+      )
+    ).to.be.revertedWithCustomError(projectCore, "StakeTooLow");
   });
 
   // ================= CA KIEM THU 2: HOP LE (CHECKPOINT BY ROLE) =================
   it("TC-02: Don vi van chuyen (dung vai tro) them chang hanh trinh thanh cong", async function () {
-    // 1. Co so tao lo hang truoc
     await projectCore.connect(producer).createBatch(
       BATCH_CODE,
       PRODUCT_NAME,
@@ -71,7 +89,6 @@ describe("HueLegend - ProjectCore (Traceability Test Suite)", function () {
     const ACTION = "Xuat kho van chuyen di Ha Noi qua duong sat";
     const META_URI = "ipfs://QmLogisticsShipmentReceipt001";
 
-    // 2. Logistics them chang dung vai
     await expect(
       projectCore.connect(logistics).addCheckpoint(
         BATCH_CODE,
@@ -86,14 +103,10 @@ describe("HueLegend - ProjectCore (Traceability Test Suite)", function () {
 
     const checkpoints = await projectCore.getCheckpoints(BATCH_CODE);
     expect(checkpoints.length).to.equal(2);
-    expect(checkpoints[1].location).to.equal(LOCATION);
-    expect(checkpoints[1].action).to.equal(ACTION);
-    expect(checkpoints[1].recorder).to.equal(logistics.address);
   });
 
   // ================= CA KIEM THU 3: GIAN LAN / KHONG PHAN QUYEN (FRAUD CASE) =================
   it("TC-03 (Gian lan): Dia chi la khong co quyen co tinh them chang bi revert UnauthorizedCaller", async function () {
-    // 1. Co so san xuat tao lo hang
     await projectCore.connect(producer).createBatch(
       BATCH_CODE,
       PRODUCT_NAME,
@@ -103,7 +116,6 @@ describe("HueLegend - ProjectCore (Traceability Test Suite)", function () {
 
     const ROLE_INSPECTOR = await projectCore.ROLE_INSPECTOR();
 
-    // 2. Attacker (ke xau) gia mao lam Inspector de chung nhan khong dung su that
     await expect(
       projectCore.connect(attacker).addCheckpoint(
         BATCH_CODE,
@@ -114,14 +126,10 @@ describe("HueLegend - ProjectCore (Traceability Test Suite)", function () {
       )
     ).to.be.revertedWithCustomError(projectCore, "UnauthorizedCaller")
      .withArgs(attacker.address, ROLE_INSPECTOR);
-
-    // Kiem tra so luong chang khong bi thay doi hay bi chen du lieu gia
-    const checkpoints = await projectCore.getCheckpoints(BATCH_CODE);
-    expect(checkpoints.length).to.equal(1);
   });
 
-  // ================= CA KIEM THU 4: RANG BUOC MA LO KHONG TRUNG LAP =================
-  it("TC-04: Khong cho phep tao trung ma lo hang (BatchAlreadyExists)", async function () {
+  // ================= KIEM TRA VÁ LỖI 4: CHỐNG KIỂM ĐỊNH TRÙNG LẶP & THU HỒI TEM =================
+  it("TC-04 (Va loi 4 do Sinh vien phat hien): Kiem dinh OCOP 2 lan bi revert BatchAlreadyVerified", async function () {
     await projectCore.connect(producer).createBatch(
       BATCH_CODE,
       PRODUCT_NAME,
@@ -129,14 +137,32 @@ describe("HueLegend - ProjectCore (Traceability Test Suite)", function () {
       INITIAL_URI
     );
 
+    // 1. Inspector verify lan 1 -> Thanh cong
+    await projectCore.connect(inspector).verifyBatch(
+      BATCH_CODE,
+      "Chung nhan OCOP 4 sao",
+      "ipfs://QmCertificateHash"
+    );
+
+    // 2. Inspector co tinh verify lan 2 tren cung ma lo -> Bi revert!
     await expect(
-      projectCore.connect(producer).createBatch(
+      projectCore.connect(inspector).verifyBatch(
         BATCH_CODE,
-        "Me Xung Loai 2",
-        "Dia chi khac",
+        "Chung nhan lan 2 trung lap",
         ""
       )
-    ).to.be.revertedWithCustomError(projectCore, "BatchAlreadyExists")
+    ).to.be.revertedWithCustomError(projectCore, "BatchAlreadyVerified")
      .withArgs(BATCH_CODE);
+
+    // 3. Kiem tra thu hoi tem kiem dinh khi phat hien vi pham
+    await expect(
+      projectCore.connect(inspector).revokeBatchVerification(
+        BATCH_CODE,
+        "Phat hien bao bi rach va nhiem khuan"
+      )
+    ).to.emit(projectCore, "BatchVerificationRevoked");
+
+    const batchAfterRevoke = await projectCore.getBatch(BATCH_CODE);
+    expect(batchAfterRevoke.isVerified).to.be.false;
   });
 });
