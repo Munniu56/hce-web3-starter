@@ -2,13 +2,15 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title ProjectCore (HueLegend Traceability & Economic Engine)
- * @dev Hop dong thong minh truy xuat dac san Hue da tich hop quy tac kinh te (Lab 11).
+ * @dev Hop dong thong minh truy xuat dac san Hue da tich hop quy tac kinh te (Lab 11)
+ * va tang cuong phong thu chong tai nhap ReentrancyGuard (Lab 13 Hardening).
  * Cai dat tu dong phi tao lo hang batchCreationFee nop vao quy he thong, kem rang buoc tran Circuit Breaker.
  */
-contract ProjectCore is Ownable {
+contract ProjectCore is Ownable, ReentrancyGuard {
     // ================= 1. DINH NGHIA VAI TRO (RBAC) =================
     bytes32 public constant ROLE_ADMIN = keccak256("ROLE_ADMIN");
     bytes32 public constant ROLE_PRODUCER = keccak256("ROLE_PRODUCER");       // Co so san xuat dac san Hue (Me xung, Tom chua, Tra sen...)
@@ -187,7 +189,7 @@ contract ProjectCore is Ownable {
         }
     }
 
-    function withdrawStake() external {
+    function withdrawStake() external nonReentrant {
         uint256 amount = producerStake[msg.sender];
         if (amount == 0) revert NothingToWithdraw();
 
@@ -226,7 +228,7 @@ contract ProjectCore is Ownable {
         string calldata productName,
         string calldata origin,
         string calldata initialMetadataURI
-    ) external payable onlyRole(ROLE_PRODUCER) {
+    ) external payable onlyRole(ROLE_PRODUCER) nonReentrant {
         // 1. Checks (Kiem tra dieu kien)
         if (bytes(batchCode).length == 0) revert EmptyString("batchCode");
         if (bytes(productName).length == 0) revert EmptyString("productName");

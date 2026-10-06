@@ -41,6 +41,7 @@ HueLegend/
 ├── lab10.md                # Tóm tắt thực hành Lab 10 (Audit mã nguồn AI & sửa 4 lỗi)
 ├── lab11.md                # Tóm tắt thực hành Lab 11 (Cài quy tắc kinh tế & Test 100%)
 ├── lab12.md                # Tóm tắt thực hành Lab 12 (Gate Review 1: Duyệt codebase & Thu hẹp phạm vi)
+├── lab13.md                # Tóm tắt thực hành Lab 13 (Thực nghiệm tấn công Reentrancy & Hardening)
 ├── docs/
 │   ├── GATE_REVIEW_1.md    # Tệp quyết định Gate Review 1, 3 việc bắt buộc sửa và tính năng bị cắt
 │   ├── PROJECT_PLAN.md     # Kế hoạch dự án v0.4, phân công xoay vai Lab 12–15 và mốc công việc
@@ -49,14 +50,16 @@ HueLegend/
 │   ├── ECONOMIC_RULES.md   # 4 mục kinh tế: dòng tiền, chống lạm dụng, quản trị, người dùng thiệt
 │   └── PRESENTATION_PLAN.md# Kịch bản demo và phân công thuyết trình bảo vệ
 ├── contracts/
-│   ├── training/           # 4 bài mẫu học kỹ thuật cho Lab 9, 10, 11, 13 (ClassPoint, TimeLockVault...)
+│   ├── training/           # 4 bài mẫu học kỹ thuật cho Lab 9, 10, 11, 13 (ClassPoint, SafeBank, VulnerableBank...)
 │   └── project/
-│       └── ProjectCore.sol # Hợp đồng thông minh cốt lõi của HueLegend (Solidity ^0.8.20, CEI)
+│       └── ProjectCore.sol # Hợp đồng thông minh cốt lõi của HueLegend (Solidity ^0.8.20, CEI, ReentrancyGuard)
 ├── test/
 │   ├── ProjectCore.test.js # Bộ kiểm thử tự động (bao gồm ca kiểm thử gian lận TC-03)
 │   ├── ClassPoint.test.js  # Kiểm thử bài mẫu ClassPoint OpenZeppelin 5 (feeBps, maxHolding)
 │   ├── economic_rules_test.py # Script kiểm thử tự động 7/7 ca kinh tế chuẩn AGENTS.md
-│   └── repo_health_check.js   # Script kiểm tra tự động 5 tiêu chí sức khỏe repo Gate Review 1
+│   ├── repo_health_check.js   # Script kiểm tra tự động 5 tiêu chí sức khỏe repo Gate Review 1
+│   ├── reentrancy_test.py     # Script thực nghiệm tấn công tái nhập & vá lỗi Lab 13
+│   └── negative_tests.py      # Script kiểm thử 5 nhóm ca thất bại & hardening Lab 13
 ├── web/
 │   └── index.html          # Giao diện Web3 DApp (Huế Royal Theme, sinh QR động & Timeline)
 └── evidence/
@@ -76,12 +79,18 @@ HueLegend/
 2. Tải tệp [`contracts/project/ProjectCore.sol`](./contracts/project/ProjectCore.sol) lên Remix.
 3. Chọn compiler `0.8.20`, chọn Deploy môi trường `Injected Provider - MetaMask` (Mạng Sepolia Testnet).
 
-### 3. Chạy ca kiểm thử tự động & Kiểm tra sức khỏe repo:
+### 3. Chạy các bộ kiểm thử tự động:
 ```bash
-# Kiểm tra tự động 5 tiêu chí sức khỏe repo Gate Review 1:
+# Thực nghiệm tấn công Reentrancy và vá lỗi (Lab 13):
+python HueLegend/test/reentrancy_test.py
+
+# Chạy toàn diện 5 nhóm ca kiểm thử thất bại & Hardening (Lab 13):
+python HueLegend/test/negative_tests.py
+
+# Kiểm tra tự động 5 tiêu chí sức khỏe repo Gate Review 1 (Lab 12):
 node HueLegend/test/repo_health_check.js
 
-# Chạy bộ kiểm thử quy tắc kinh tế:
+# Chạy bộ kiểm thử quy tắc kinh tế (Lab 11):
 python HueLegend/test/economic_rules_test.py
 ```
 
@@ -96,5 +105,7 @@ python HueLegend/test/economic_rules_test.py
 - **Mã commit nộp bài Lab 10:** `lab-10: audit va sua loi project core`
 - **Mã commit nộp bài Lab 11:** `lab-11: cai quy tac kinh te va test`
 - **Mã commit nộp bài Lab 12:** `lab-12: gate review 1 va cap nhat pham vi`
+- **Mã commit nộp bài Lab 13:** `lab-13: them negative test va hardening`
+
 
 

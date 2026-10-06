@@ -117,3 +117,20 @@ Trong Lab 11, nhóm HueLegend chọn cài đặt quy tắc kinh tế: **Phí kh�
    - Tài khoản lạ không có quyền `ROLE_PRODUCER` cố tình gọi `createBatch()` hoặc `addCheckpoint()`.
    - Kết quả mong đợi: Giao dịch bị hoàn tác với lỗi `UnauthorizedCaller`.
 
+---
+
+## 7. Cơ chế Phòng thủ Tái nhập & Bộ Kiểm thử Thất bại (Negative Tests - Lab 13)
+
+### 7.1. Tăng cường an ninh đa tầng (Defense-in-Depth Hardening)
+Trong Lab 13, nhóm đã tiến hành rà soát mọi điểm có dòng tiền chuyển ra (`withdrawStake`, `createBatch`) và tăng cường hai tầng phòng thủ:
+1. **Tầng 1 — Checks-Effects-Interactions (CEI):** Mọi trạng thái lưu trữ nội bộ (`producerStake`, `_batches`) bắt buộc phải ghi sổ và cập nhật hoàn tất trước khi kích hoạt bất kỳ lệnh chuyển tiền ngoài chuỗi nào (`.call`).
+2. **Tầng 2 — OpenZeppelin ReentrancyGuard:** Kế thừa thư viện `@openzeppelin/contracts/utils/ReentrancyGuard.sol` và gắn modifier `nonReentrant` trên cả `withdrawStake()` và `createBatch()`, chặn đứng hoàn toàn mọi nỗ lực đệ quy tái nhập trong cùng một giao dịch.
+
+### 7.2. Đặc tả 5 nhóm ca kiểm thử thất bại (Negative Test Cases):
+1. **Sai thời điểm (Timelock Violation):** Rút cọc khi chưa hết hạn khóa 30 ngày $\rightarrow$ Revert `StillLocked(unlockAt, currentTime)`.
+2. **Sai người (Unauthorized Caller):** Mạo danh các vai trò `ROLE_PRODUCER`, `ROLE_LOGISTICS`, `ROLE_INSPECTOR` $\rightarrow$ Revert `UnauthorizedCaller(caller, requiredRole)`.
+3. **Sai số tiền (Economic & Circuit Breaker):** Nạp thiếu cọc `< 0.05 ETH` $\rightarrow$ Revert `StakeTooLow`; Nộp thiếu phí tạo lô `< 0.001 ETH` $\rightarrow$ Revert `InsufficientBatchFee`; Admin set phí `> 0.01 ETH` $\rightarrow$ Revert `FeeExceedsLimit`.
+4. **Gọi lại (Reentrancy Attack Attempt):** Hợp đồng kẻ tấn công gọi đệ quy ngược lại hàm `withdrawStake()` trong callback `receive()` $\rightarrow$ Hoàn tác và chặn đứng bởi CEI và `ReentrancyGuard`.
+5. **Dữ liệu lỗi & Giới hạn DoS (Spam Protection):** Tạo trùng mã lô đã tồn tại $\rightarrow$ Revert `BatchAlreadyExists`; Thêm quá 50 chặng trên 1 lô hàng $\rightarrow$ Revert `MaxCheckpointsExceeded`.
+
+

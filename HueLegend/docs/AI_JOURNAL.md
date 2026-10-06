@@ -172,4 +172,25 @@ Nhóm đã triển khai kiểm thử toàn diện tại [`test/ProjectCore.test.
    - Ngô Quỳnh Trang nhận vai trò **Hợp đồng & Kiểm thử** (chịu trách nhiệm chính Lab 13 và Lab 14).
    - Ngô Thị Thuỷ Vân nhận vai trò **Đặc tả & Giao diện** (chịu trách nhiệm chính Lab 15 và cập nhật tài liệu).
 
+---
+
+## 8. Phiên làm việc Lab 13: Thực nghiệm Tấn công Tái nhập (Reentrancy) & Hardening ProjectCore
+
+### 8.1. Câu lệnh (Prompt) dẫn dắt theo yêu cầu Bước 3:
+> *"Bạn là kiểm toán viên hợp đồng thông minh. Đừng đưa mã sửa ngay. Hãy giải thích từng bước điều gì xảy ra khi hàm withdraw() dưới đây được gọi bởi một hợp đồng có hàm receive(). Sau đó nêu 2 cách khắc phục và so sánh ưu nhược điểm của từng cách.*  
+> `[dán mã VulnerableBank]`*"
+
+### 8.2. Phân tích của Trợ lý AI và Kết quả tiếp thu của Nhóm:
+1. **Phân tích cơ chế Reentrancy:**
+   - Lệnh `.call` chuyển quyền điều khiển EVM sang hợp đồng ngoài trước khi hợp đồng đích cập nhật trạng thái `balances[msg.sender] = 0`.
+   - Hàm `receive()` của kẻ tấn công gọi đệ quy trở lại `withdraw()`. EVM mở frame thực thi mới, thấy số dư vẫn còn $\ge 1\text{ ETH}$ nên tiếp tục gửi tiền, dẫn tới việc rút sạch 6 ETH của ngân hàng.
+2. **So sánh 2 cách vá:**
+   - *Cách 1 (Checks-Effects-Interactions):* Tối ưu gas, không phụ thuộc thư viện, giải quyết triệt để ở bản chất luồng thực thi kế toán (ghi sổ trước khi chi tiền).
+   - *Cách 2 (OpenZeppelin ReentrancyGuard):* Dùng biến cờ khóa `nonReentrant`, bảo vệ an toàn ngay cả các cuộc tấn công phức tạp liên hàm (`cross-function reentrancy`).
+3. **Quyết định kỹ thuật áp dụng vào `ProjectCore.sol` (Hardening):**
+   - Hợp đồng `ProjectCore.sol` vốn đã áp dụng nghiêm ngặt CEI trong `withdrawStake()` và `createBatch()`.
+   - Để đạt chuẩn **Phòng thủ đa tầng (Defense-in-Depth)**, nhóm quyết định kế thừa thêm `ReentrancyGuard` từ OpenZeppelin Contracts 5.x (`import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"`) và gắn modifier `nonReentrant` cho cả hai hàm có tương tác chuyển ETH ngoài chuỗi.
+   - Xây dựng bộ test thất bại tự động `test/negative_tests.py` kiểm thử 5 nhóm ca lỗi: Sai thời điểm (`StillLocked`), Sai người (`UnauthorizedCaller`), Sai số tiền (`StakeTooLow`, `InsufficientBatchFee`, `FeeExceedsLimit`), Gọi lại tái nhập, và Dữ liệu trùng lặp (`BatchAlreadyExists`, `MaxCheckpointsExceeded`).
+
+
 
