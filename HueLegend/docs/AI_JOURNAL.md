@@ -192,5 +192,28 @@ Nhóm đã triển khai kiểm thử toàn diện tại [`test/ProjectCore.test.
    - Để đạt chuẩn **Phòng thủ đa tầng (Defense-in-Depth)**, nhóm quyết định kế thừa thêm `ReentrancyGuard` từ OpenZeppelin Contracts 5.x (`import "@openzeppelin/contracts/utils/ReentrancyGuard.sol"`) và gắn modifier `nonReentrant` cho cả hai hàm có tương tác chuyển ETH ngoài chuỗi.
    - Xây dựng bộ test thất bại tự động `test/negative_tests.py` kiểm thử 5 nhóm ca lỗi: Sai thời điểm (`StillLocked`), Sai người (`UnauthorizedCaller`), Sai số tiền (`StakeTooLow`, `InsufficientBatchFee`, `FeeExceedsLimit`), Gọi lại tái nhập, và Dữ liệu trùng lặp (`BatchAlreadyExists`, `MaxCheckpointsExceeded`).
 
+---
 
+## 9. Phiên làm việc Lab 14: Rà soát chéo giữa các nhóm (Cross-Team Audit) & Remediating ProjectCore
 
+### 9.1. Câu lệnh (Prompt) đưa vào trợ lý AI:
+> *"Tiến hành rà soát chéo hợp đồng thông minh Lab 14:
+> 1. Rà soát hợp đồng EcoTraceCore.sol của nhóm bạn (Nhóm 06) theo danh mục kiểm tra 10 tiêu chí bắt buộc (Phân quyền, Thứ tự thao tác CEI, Điều kiện thời gian, Phép chia, Chuyển ETH, Dữ liệu riêng tư, Vòng lặp, Sự kiện, Trường hợp số 0, Địa chỉ rỗng). Chỉ ra chính xác số dòng, tình huống gây thiệt hại và khuyến nghị.
+> 2. Tiếp thu báo cáo rà soát của Nhóm 04 (AgriTrust) đối với ProjectCore.sol của HueLegend, tập trung giải quyết 3 phát hiện: hoàn trả tiền thừa tạo lô (Medium), trần độ dài chuỗi ký tự (Low), và dọn dẹp biến producerUnlockTime khi rút sạch cọc (Low).
+> 3. Viết mã sửa chữa tuân thủ nghiêm ngặt quy tắc AGENTS.md (CEI, custom error, chú thích tiếng Việt không dấu) và viết kịch bản kiểm thử xác minh."*
+
+### 9.2. Phân tích của Trợ lý AI và Kết quả tiếp thu của Nhóm:
+1. **Phân tích hợp đồng nhóm bạn (EcoTrace):**
+   - Trợ lý AI đã hỗ trợ phân tích luồng thực thi và phát hiện lỗ hổng Reentrancy tại dòng 142-151 của `claimReward()` (chuyển ETH trước khi trừ `rewardsBalance`).
+   - Phát hiện thêm hàm `updateCertification()` tại dòng 98 thiếu hẳn modifier kiểm tra vai trò Certifier, cho phép bất kỳ ai ghi đè mã chứng chỉ.
+   - Tổng hợp thành báo cáo kiểm toán chuyên nghiệp gửi Nhóm 06 kèm số dòng cụ thể.
+2. **Phân tích và khắc phục 3 phát hiện của Nhóm 04 đối với HueLegend:**
+   - *Phát hiện Trung bình (Hoàn trả phí thừa):* Trước đây hợp đồng chuyển toàn bộ `msg.value` vào `ecosystemFund`. Nếu người dùng nộp thừa (ví dụ 0.003 ETH trong khi phí là 0.001 ETH), 0.002 ETH bị mất. Nhóm tiếp thu và bổ sung tính toán `excess = msg.value - feeToCollect`, chuyển đúng phí vào quỹ và hoàn trả phần dư qua `.call` an toàn theo CEI, đồng thời phát `event ExcessFeeRefunded`.
+   - *Phát hiện Nhẹ 1 (Trần độ dài chuỗi):* AI hỗ trợ định nghĩa các hằng số trần cứng `MAX_BATCH_CODE_LENGTH` (64), `MAX_PRODUCT_NAME_LENGTH` (128), `MAX_LOCATION_LENGTH` (128) cùng lỗi tùy biến `StringTooLong` để ngăn chặn triệt để tấn công làm phình to storage và spam gas.
+   - *Phát hiện Nhẹ 2 (Dọn dẹp storage cọc):* Khi nhà sản xuất rút hết tiền cọc trong `withdrawStake()`, bổ sung `producerUnlockTime[msg.sender] = 0;` để giải phóng slot và giúp UI Web3 hiển thị trạng thái chính xác.
+3. **Kiểm chứng thực nghiệm tự động:**
+   - Biên dịch thành công với `solc v0.8.37` (0 lỗi).
+   - Kịch bản `test/audit_remediation_test.py` chạy thành công 100% cả 3/3 ca kiểm thử bản vá, lưu log đầy đủ vào `evidence/lab-14/audit_remediation_test_log.txt`.
+4. **Hồ sơ bàn giao & Commit:**
+   - Toàn bộ nội dung báo cáo rà soát 2 chiều được chuẩn hóa tại `docs/AUDIT_REPORT.md`.
+   - Commit nộp bài với thông điệp chuẩn: `lab-14: xu ly ket qua audit cheo`.

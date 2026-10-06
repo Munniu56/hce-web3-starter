@@ -42,7 +42,9 @@ HueLegend/
 ├── lab11.md                # Tóm tắt thực hành Lab 11 (Cài quy tắc kinh tế & Test 100%)
 ├── lab12.md                # Tóm tắt thực hành Lab 12 (Gate Review 1: Duyệt codebase & Thu hẹp phạm vi)
 ├── lab13.md                # Tóm tắt thực hành Lab 13 (Thực nghiệm tấn công Reentrancy & Hardening)
+├── lab14.md                # Tóm tắt thực hành Lab 14 (Rà soát chéo giữa các nhóm & Remediating)
 ├── docs/
+│   ├── AUDIT_REPORT.md     # Báo cáo rà soát chéo 2 chiều (HueLegend audit EcoTrace & Phản hồi bản vá)
 │   ├── GATE_REVIEW_1.md    # Tệp quyết định Gate Review 1, 3 việc bắt buộc sửa và tính năng bị cắt
 │   ├── PROJECT_PLAN.md     # Kế hoạch dự án v0.4, phân công xoay vai Lab 12–15 và mốc công việc
 │   ├── SPEC.md             # Đặc tả 4 quy tắc kiểm thử được (Ai làm gì, khi nào, giới hạn, lỗi)
@@ -52,14 +54,15 @@ HueLegend/
 ├── contracts/
 │   ├── training/           # 4 bài mẫu học kỹ thuật cho Lab 9, 10, 11, 13 (ClassPoint, SafeBank, VulnerableBank...)
 │   └── project/
-│       └── ProjectCore.sol # Hợp đồng thông minh cốt lõi của HueLegend (Solidity ^0.8.20, CEI, ReentrancyGuard)
+│       └── ProjectCore.sol # Hợp đồng thông minh cốt lõi của HueLegend (Solidity ^0.8.20, CEI, ReentrancyGuard, Đã vá Lab 14)
 ├── test/
 │   ├── ProjectCore.test.js # Bộ kiểm thử tự động (bao gồm ca kiểm thử gian lận TC-03)
 │   ├── ClassPoint.test.js  # Kiểm thử bài mẫu ClassPoint OpenZeppelin 5 (feeBps, maxHolding)
 │   ├── economic_rules_test.py # Script kiểm thử tự động 7/7 ca kinh tế chuẩn AGENTS.md
 │   ├── repo_health_check.js   # Script kiểm tra tự động 5 tiêu chí sức khỏe repo Gate Review 1
 │   ├── reentrancy_test.py     # Script thực nghiệm tấn công tái nhập & vá lỗi Lab 13
-│   └── negative_tests.py      # Script kiểm thử 5 nhóm ca thất bại & hardening Lab 13
+│   ├── negative_tests.py      # Script kiểm thử 5 nhóm ca thất bại & hardening Lab 13
+│   └── audit_remediation_test.py # Script kiểm thử 3/3 bản vá rà soát chéo Lab 14
 ├── web/
 │   └── index.html          # Giao diện Web3 DApp (Huế Royal Theme, sinh QR động & Timeline)
 └── evidence/
@@ -81,6 +84,9 @@ HueLegend/
 
 ### 3. Chạy các bộ kiểm thử tự động:
 ```bash
+# Kiểm thử các bản vá rà soát chéo Lab 14 (Hoàn tiền thừa, trần String, reset unlock time):
+python HueLegend/test/audit_remediation_test.py
+
 # Thực nghiệm tấn công Reentrancy và vá lỗi (Lab 13):
 python HueLegend/test/reentrancy_test.py
 
@@ -106,6 +112,7 @@ python HueLegend/test/economic_rules_test.py
 - **Mã commit nộp bài Lab 11:** `lab-11: cai quy tac kinh te va test`
 - **Mã commit nộp bài Lab 12:** `lab-12: gate review 1 va cap nhat pham vi`
 - **Mã commit nộp bài Lab 13:** `lab-13: them negative test va hardening`
+- **Mã commit nộp bài Lab 14:** `lab-14: xu ly ket qua audit cheo`
 
 
 
