@@ -217,3 +217,32 @@ Nhóm đã triển khai kiểm thử toàn diện tại [`test/ProjectCore.test.
 4. **Hồ sơ bàn giao & Commit:**
    - Toàn bộ nội dung báo cáo rà soát 2 chiều được chuẩn hóa tại `docs/AUDIT_REPORT.md`.
    - Commit nộp bài với thông điệp chuẩn: `lab-14: xu ly ket qua audit cheo`.
+
+---
+
+## 10. Phiên làm việc Lab 15: Hoàn thiện DApp Web3 công khai, Tích hợp Ethers.js v6 & Kịch bản thuyết trình
+
+### 10.1. Câu lệnh (Prompt) đưa vào trợ lý AI:
+> *"Tiến hành hoàn thiện bài Lab 15 (Giao diện Web và đưa sản phẩm lên mạng):
+> 1. Nối giao diện web với hợp đồng ProjectCore.sol đã triển khai trên Sepolia (0x35655079aEbB215E58e379D5a8c2f1f3a5323C6b), trích xuất và tích hợp compact ABI 50 định nghĩa vào CONTRACT_ABI.
+> 2. Lập bảng ánh xạ kết nối 4 thành phần theo đúng yêu cầu đề bài và bổ sung vào README.md.
+> 3. Cài đặt cơ chế bắt lỗi try/catch thông minh trên giao diện Web3, dịch tên các custom error (UnauthorizedCaller, InsufficientBatchFee, BatchAlreadyExists, StringTooLong, StillLocked) sang tiếng Việt người dùng dễ hiểu.
+> 4. Tinh chỉnh giao diện mobile-responsive theo phong cách Cố Đô Huế hoàng gia (Huế Royal Purple & Golden Lotus), có nút chuyển mạng tự động sang Sepolia (Chain ID 11155111) và hiệu ứng loading rõ ràng.
+> 5. Soạn thảo kịch bản trình bày docs/PRESENTATION_PLAN.md chuẩn 5 phút, phân vai 2:30 cho từng thành viên, mỗi người gắn chặt với một artifact chuyên trách."*
+
+### 10.2. Phân tích của Trợ lý AI và Kết quả tiếp thu của Nhóm:
+1. **Phân tích kết nối Web3 và Khắc phục bẫy thường gặp:**
+   - Trợ lý AI chỉ rõ bẫy phổ biến nhất là người dùng mở DApp bằng ví đang kết nối mạng khác (Mainnet hoặc testnet khác). Giải pháp: Bổ sung đoạn mã kiểm tra `network.chainId === 11155111`, nếu sai sẽ hiển thị banner cảnh báo và kích hoạt `wallet_switchEthereumChain` sang Sepolia.
+   - Bẫy thứ hai là người dùng xem link trên điện thoại chưa có MetaMask: Bổ sung chế độ **Interactive Demo Engine / Read-only RPC Fallback** để bất kỳ ai mở link công khai cũng tra cứu và trải nghiệm trọn vẹn luồng sản phẩm mà không bị crash.
+2. **Chi tiết bắt lỗi người dùng (Custom Error Translation):**
+   - Không hiển thị chuỗi JSON RPC hay stack trace phức tạp. Sử dụng `error.shortMessage || error.message` để ánh xạ chính xác:
+     + `UnauthorizedCaller` $\to$ Cảnh báo lỗi phân quyền, thiếu vai trò hợp lệ.
+     + `InsufficientBatchFee` $\to$ Nhắc nhở nộp đủ mức phí 0.001 ETH quy định.
+     + `BatchAlreadyExists` $\to$ Cảnh báo mã lô đã tồn tại trên chuỗi.
+     + `StringTooLong` $\to$ Cảnh báo dữ liệu vượt quá độ dài trần chống spam gas.
+3. **Kịch bản phân vai 5 phút:**
+   - Ngô Thị Thuỷ Vân phụ trách `docs/SPEC.md` và Live Demo DApp trên điện thoại qua GitHub Pages.
+   - Ngô Quỳnh Trang phụ trách `contracts/ProjectCore.sol`, `docs/AUDIT_REPORT.md` và đối soát giao dịch Sepolia.
+4. **Đóng gói sản phẩm:**
+   - Triển khai công khai tại GitHub Pages: `https://munniu56.github.io/hce-web3-starter/HueLegend/web/`.
+   - Tạo tag phát hành: `v0.1-demo` và commit nộp bài: `lab-15: public dapp va presentation plan`.

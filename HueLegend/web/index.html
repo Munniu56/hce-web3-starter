@@ -2,38 +2,42 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HueLegend — Truy Xuất Nguồn Gốc Đặc Sản Cố Đô Trên Blockchain</title>
-  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display mang nét Cố Đô hoàng gia -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HueLegend — Hệ Thống Truy Xuất Nguồn Gốc Đặc Sản Huế Trên Blockchain</title>
+  
+  <!-- Fonts & Web3 Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- QRCode.js de sinh ma QR dong -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- Ethers.js v6 de tuong tac Web3 -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
   
+  <!-- Ethers.js v6 & QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
   <style>
     :root {
-      --hue-purple-deep: #19092c;
-      --hue-purple-card: rgba(35, 14, 61, 0.75);
+      --hue-purple-deep: #160728;
+      --hue-purple-card: rgba(36, 12, 60, 0.85);
       --hue-purple-accent: #6b21a8;
       --hue-purple-light: #9333ea;
       --hue-gold: #f59e0b;
       --hue-gold-light: #fbbf24;
       --hue-gold-royal: #eab308;
       --hue-lotus: #ec4899;
+      --hue-green: #10b981;
+      --hue-red: #ef4444;
       --text-main: #f8fafc;
       --text-muted: #cbd5e1;
-      --bg-gradient: radial-gradient(circle at 10% 20%, #2e0854 0%, #150524 50%, #0d0216 100%);
-      --border-glass: rgba(245, 158, 11, 0.25);
-      --card-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(147, 51, 234, 0.15);
+      --bg-gradient: radial-gradient(circle at 10% 20%, #29074b 0%, #150524 50%, #0c0215 100%);
+      --border-glass: rgba(245, 158, 11, 0.28);
+      --card-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.7), 0 0 25px rgba(147, 51, 234, 0.15);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -43,523 +47,593 @@
       min-height: 100vh;
       line-height: 1.6;
       background-attachment: fixed;
+      padding-bottom: 2rem;
     }
 
-    /* Ambient Glow Background Effect */
-    .ambient-glow {
+    /* Ambient Lighting */
+    .ambient-glow-1 {
       position: fixed;
-      top: -100px;
-      right: -100px;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(234, 179, 8, 0.15) 0%, transparent 70%);
+      top: -120px;
+      right: -120px;
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(234, 179, 8, 0.14) 0%, transparent 70%);
       filter: blur(80px);
       pointer-events: none;
       z-index: 0;
     }
-
     .ambient-glow-2 {
       position: fixed;
-      bottom: -100px;
-      left: -100px;
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(147, 51, 234, 0.2) 0%, transparent 70%);
+      bottom: -120px;
+      left: -120px;
+      width: 480px;
+      height: 480px;
+      background: radial-gradient(circle, rgba(147, 51, 234, 0.18) 0%, transparent 70%);
       filter: blur(80px);
       pointer-events: none;
       z-index: 0;
     }
 
+    /* Header Nav */
     header {
       position: sticky;
       top: 0;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      background: rgba(25, 9, 44, 0.85);
+      background: rgba(22, 7, 40, 0.92);
       border-bottom: 1px solid var(--border-glass);
-      padding: 1rem 2rem;
+      padding: 0.9rem 1.4rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       z-index: 100;
+      gap: 12px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .brand-logo {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border-radius: 12px;
       background: linear-gradient(135deg, var(--hue-gold) 0%, var(--hue-purple-accent) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 22px;
-      box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
     }
 
     .brand-title {
       font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #ffffff 20%, var(--hue-gold-light) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: 1.35rem;
       letter-spacing: 0.5px;
-    }
-
-    .brand-sub {
-      font-size: 0.75rem;
-      color: var(--hue-gold);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .badge-network {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--hue-gold-light);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      padding: 0.4rem 0.9rem;
-      border-radius: 9999px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .badge-network::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #10b981;
-      box-shadow: 0 0 8px #10b981;
-    }
-
-    .btn-connect {
-      background: linear-gradient(135deg, #d97706, #f59e0b);
-      color: #1a0826;
-      border: none;
-      padding: 0.55rem 1.25rem;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 0.88rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-    }
-
-    .btn-connect:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2.5rem 1.5rem;
-      position: relative;
-      z-index: 10;
-    }
-
-    /* Hero Banner */
-    .hero {
-      text-align: center;
-      margin-bottom: 2.5rem;
-    }
-
-    .hero-badge {
-      display: inline-block;
-      background: rgba(147, 51, 234, 0.25);
-      border: 1px solid rgba(147, 51, 234, 0.4);
-      color: #e9d5ff;
-      padding: 0.35rem 1.2rem;
-      border-radius: 9999px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      letter-spacing: 0.5px;
-    }
-
-    .hero h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.8rem;
-      font-weight: 800;
-      margin-bottom: 0.75rem;
-      background: linear-gradient(180deg, #ffffff 0%, #fef08a 100%);
+      background: linear-gradient(90deg, #fbbf24 0%, #fef08a 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       line-height: 1.2;
     }
 
-    .hero p {
-      max-width: 680px;
-      margin: 0 auto;
+    .brand-sub {
+      font-size: 0.72rem;
       color: var(--text-muted);
-      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge-network {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge-network::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .btn-connect {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #19092c;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-connect:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    }
+
+    /* Wrong Network Warning Banner */
+    #networkAlert {
+      display: none;
+      background: rgba(239, 68, 68, 0.2);
+      border-bottom: 1px solid #ef4444;
+      color: #fecaca;
+      padding: 0.6rem 1rem;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    #networkAlert button {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      margin-left: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1080px;
+      margin: 1.2rem auto;
+      padding: 0 1rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 1.5rem 0 2rem;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: var(--hue-gold-light);
+      font-size: 0.78rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+    }
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.1rem;
+      font-weight: 800;
+      line-height: 1.3;
+      margin-bottom: 0.6rem;
+      background: linear-gradient(135deg, #ffffff 0%, #fef08a 50%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto;
+      font-size: 0.95rem;
     }
 
     /* Tabs Navigation */
     .tabs-nav {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 2.5rem;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 1.5rem;
+      background: rgba(22, 7, 40, 0.6);
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid var(--border-glass);
     }
-
     .tab-btn {
-      background: rgba(30, 10, 54, 0.7);
-      border: 1px solid rgba(245, 158, 11, 0.2);
+      background: transparent;
+      border: none;
       color: var(--text-muted);
-      padding: 0.75rem 1.5rem;
-      border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: 600;
+      padding: 0.75rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      gap: 6px;
+      text-align: center;
     }
-
-    .tab-btn:hover {
-      background: rgba(60, 20, 100, 0.6);
-      color: #ffffff;
-      border-color: rgba(245, 158, 11, 0.5);
-    }
-
     .tab-btn.active {
-      background: linear-gradient(135deg, rgba(147, 51, 234, 0.4), rgba(245, 158, 11, 0.3));
-      border-color: var(--hue-gold);
-      color: #ffffff;
-      box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #19092c;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
     }
 
-    /* Main Tab Content Panels */
-    .tab-pane {
+    /* Card Panels */
+    .card-panel {
       display: none;
-      animation: fadeIn 0.35s ease;
-    }
-
-    .tab-pane.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Cards */
-    .card {
       background: var(--hue-purple-card);
       border: 1px solid var(--border-glass);
-      border-radius: 20px;
-      padding: 2.2rem;
+      border-radius: 18px;
+      padding: 1.6rem;
       box-shadow: var(--card-shadow);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
+      animation: fadeIn 0.3s ease;
+    }
+    .card-panel.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .card-title {
+    .panel-header {
+      margin-bottom: 1.2rem;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.15);
+      padding-bottom: 0.8rem;
+    }
+    .panel-title {
       font-family: 'Playfair Display', serif;
-      font-size: 1.5rem;
-      font-weight: 700;
+      font-size: 1.35rem;
       color: var(--hue-gold-light);
-      margin-bottom: 0.5rem;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
-
-    .card-desc {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      margin-bottom: 1.8rem;
-    }
-
-    /* Forms */
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.25rem;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-group.full-width {
-      grid-column: 1 / -1;
-    }
-
-    label {
+    .panel-desc {
       font-size: 0.85rem;
-      font-weight: 600;
-      color: #e2e8f0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      color: var(--text-muted);
+      margin-top: 4px;
     }
 
+    /* Form Inputs */
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--hue-gold-light);
+      margin-bottom: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
     input, select, textarea {
-      background: rgba(18, 5, 32, 0.8);
-      border: 1px solid rgba(245, 158, 11, 0.25);
+      width: 100%;
+      background: rgba(15, 4, 28, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--text-main);
+      padding: 0.75rem 0.9rem;
       border-radius: 10px;
-      padding: 0.75rem 1rem;
-      color: #ffffff;
+      font-size: 0.92rem;
       font-family: inherit;
-      font-size: 0.95rem;
       transition: all 0.2s;
     }
-
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--hue-gold);
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
-      background: rgba(28, 8, 48, 0.9);
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+      background: rgba(20, 6, 36, 0.95);
+    }
+    select option {
+      background: #19092c;
+      color: #fff;
     }
 
-    .btn-primary {
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Buttons */
+    .btn-submit {
+      width: 100%;
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: #170524;
+      color: #19092c;
       border: none;
-      border-radius: 12px;
-      padding: 0.9rem 1.8rem;
+      padding: 0.85rem 1.2rem;
+      font-size: 0.95rem;
       font-weight: 800;
-      font-size: 1rem;
+      border-radius: 10px;
       cursor: pointer;
-      transition: all 0.25s ease;
-      display: inline-flex;
+      transition: all 0.2s;
+      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+      display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
-      margin-top: 1rem;
     }
-
-    .btn-primary:hover {
+    .btn-submit:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(245, 158, 11, 0.55);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.45);
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    }
+    .btn-submit:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
     }
 
-    .btn-fraud-demo {
+    .btn-secondary {
       background: rgba(239, 68, 68, 0.15);
-      color: #fca5a5;
-      border: 1px dashed rgba(239, 68, 68, 0.5);
-      padding: 0.6rem 1rem;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+      padding: 0.65rem 1rem;
       border-radius: 10px;
+      font-weight: 700;
       font-size: 0.85rem;
-      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      margin-left: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 0.8rem;
     }
-
-    .btn-fraud-demo:hover {
+    .btn-secondary:hover {
       background: rgba(239, 68, 68, 0.25);
+      border-color: #ef4444;
     }
 
-    /* Result Box & QR Box */
+    /* Result Box / QR Box */
     .result-box {
-      margin-top: 1.5rem;
-      padding: 1.5rem;
-      background: rgba(16, 5, 29, 0.7);
-      border-radius: 16px;
-      border: 1px solid var(--border-glass);
+      margin-top: 1.4rem;
+      background: rgba(18, 5, 32, 0.9);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 14px;
+      padding: 1.2rem;
       display: none;
     }
-
-    .qr-container {
-      display: flex;
-      gap: 2rem;
+    .result-grid {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 16px;
       align-items: center;
-      flex-wrap: wrap;
-      margin-top: 1rem;
     }
-
-    .qr-code-wrapper {
-      background: #ffffff;
-      padding: 14px;
-      border-radius: 14px;
-      box-shadow: 0 0 25px rgba(245, 158, 11, 0.3);
-      display: inline-block;
-    }
-
-    /* Timeline Section for Checkpoint History */
-    .timeline {
-      position: relative;
-      margin: 2.5rem 0 1.5rem 1.5rem;
-      padding-left: 2rem;
-      border-left: 2px dashed rgba(245, 158, 11, 0.35);
-    }
-
-    .timeline-item {
-      position: relative;
-      margin-bottom: 2rem;
-      animation: fadeIn 0.4s ease;
-    }
-
-    .timeline-dot {
-      position: absolute;
-      left: -2.75rem;
-      top: 4px;
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: var(--hue-purple-deep);
-      border: 3px solid var(--hue-gold);
-      box-shadow: 0 0 12px var(--hue-gold);
-      display: flex;
+    .qr-holder {
+      background: white;
+      padding: 8px;
+      border-radius: 10px;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
     }
-
-    .timeline-content {
-      background: rgba(28, 10, 50, 0.85);
-      border: 1px solid rgba(245, 158, 11, 0.2);
-      border-radius: 14px;
-      padding: 1.25rem 1.5rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    .res-info h4 {
+      color: #34d399;
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+    .res-info p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .res-info code {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--hue-gold-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.82rem;
     }
 
+    /* Timeline Section */
+    .timeline {
+      position: relative;
+      margin-top: 1.5rem;
+      padding-left: 20px;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      bottom: 12px;
+      left: 7px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--hue-gold) 0%, var(--hue-purple-light) 100%);
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 1.3rem;
+    }
+    .timeline-dot {
+      position: absolute;
+      left: -20px;
+      top: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--hue-gold);
+      border: 3px solid #160728;
+      box-shadow: 0 0 10px var(--hue-gold);
+    }
+    .timeline-content {
+      background: rgba(25, 8, 44, 0.7);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: 12px;
+      padding: 0.9rem 1.1rem;
+      transition: transform 0.2s;
+    }
+    .timeline-content:hover {
+      border-color: rgba(245, 158, 11, 0.45);
+      transform: translateX(3px);
+    }
     .timeline-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.6rem;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .role-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .role-producer { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .role-inspector { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .role-logistics { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .role-retailer { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); }
+
+    .timeline-time {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+    .timeline-action {
+      font-size: 0.9rem;
+      color: #f1f5f9;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .timeline-location {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .timeline-footer {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      color: #94a3b8;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 6px;
       flex-wrap: wrap;
       gap: 8px;
     }
-
-    .role-tag {
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 0.3rem 0.75rem;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .role-producer { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
-    .role-logistics { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
-    .role-retailer { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
-    .role-inspector { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); }
-
-    .timeline-time {
-      font-size: 0.8rem;
-      color: #94a3b8;
-    }
-
-    .timeline-action {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 0.4rem;
-    }
-
-    .timeline-location {
-      font-size: 0.88rem;
-      color: #cbd5e1;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 0.5rem;
-    }
-
-    .timeline-footer {
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      padding-top: 0.5rem;
-      margin-top: 0.5rem;
-      font-size: 0.78rem;
-      color: #94a3b8;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
     .hash-link {
       color: var(--hue-gold-light);
       text-decoration: none;
     }
-
     .hash-link:hover {
       text-decoration: underline;
     }
 
-    /* Sample batch chips */
+    /* Sample chips */
     .sample-chips {
       display: flex;
-      gap: 10px;
-      margin: 1rem 0;
+      gap: 8px;
+      margin: 0.7rem 0 1.2rem;
       flex-wrap: wrap;
     }
-
     .chip {
       background: rgba(245, 158, 11, 0.1);
       border: 1px solid rgba(245, 158, 11, 0.3);
       color: var(--hue-gold-light);
-      padding: 0.35rem 0.85rem;
+      padding: 0.35rem 0.8rem;
       border-radius: 9999px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       cursor: pointer;
       transition: all 0.2s;
     }
-
     .chip:hover {
       background: rgba(245, 158, 11, 0.25);
       border-color: var(--hue-gold);
+      transform: translateY(-1px);
     }
 
-    /* Toast notification */
+    /* Toast Notification */
     .toast {
       position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      padding: 1rem 1.5rem;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      left: 1.5rem;
+      max-width: 440px;
+      margin: 0 auto;
+      padding: 0.9rem 1.3rem;
       border-radius: 12px;
-      background: #18092a;
+      background: #19092c;
       color: #ffffff;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-      border-left: 4px solid var(--hue-gold);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.85);
+      border-left: 5px solid var(--hue-gold);
       display: none;
       z-index: 1000;
-      max-width: 420px;
-      animation: slideIn 0.3s ease;
+      animation: slideUp 0.3s ease;
+      font-size: 0.88rem;
+      line-height: 1.4;
     }
-
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+    @keyframes slideUp {
+      from { transform: translateY(50px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     footer {
       text-align: center;
-      padding: 2.5rem 1rem;
-      border-top: 1px solid rgba(245, 158, 11, 0.15);
+      padding: 2rem 1rem 0;
       color: #94a3b8;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
+      border-top: 1px solid rgba(245, 158, 11, 0.15);
+      margin-top: 2rem;
+    }
+
+    /* Mobile Responsive Tweaks */
+    @media (max-width: 768px) {
+      header {
+        padding: 0.8rem 1rem;
+      }
+      .brand-title {
+        font-size: 1.15rem;
+      }
+      .hero h1 {
+        font-size: 1.6rem;
+      }
+      .hero p {
+        font-size: 0.85rem;
+      }
+      .tabs-nav {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .tab-btn {
+        padding: 0.65rem;
+        font-size: 0.82rem;
+      }
+      .card-panel {
+        padding: 1.1rem;
+      }
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      .result-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .qr-holder {
+        margin: 0 auto;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="ambient-glow"></div>
+  <div class="ambient-glow-1"></div>
   <div class="ambient-glow-2"></div>
 
   <!-- Header -->
@@ -568,589 +642,763 @@
       <div class="brand-logo">🏮</div>
       <div>
         <div class="brand-title">HueLegend</div>
-        <div class="brand-sub">Hệ Thống Truy Xuất Đặc Sản Huế Web3</div>
+        <div class="brand-sub">Đặc Sản Cố Đô • Web3 Blockchain</div>
       </div>
     </div>
     <div class="header-actions">
-      <div class="badge-network">Ethereum Sepolia</div>
-      <button class="btn-connect" id="connectBtn" onclick="toggleWallet()">Kết Nối Ví Web3</button>
+      <div class="badge-network" id="networkBadge">Sepolia (11155111)</div>
+      <button class="btn-connect" id="btnConnect" onclick="connectWallet()">
+        <span>🦊</span> <span id="btnConnectText">Kết Nối Ví</span>
+      </button>
     </div>
   </header>
 
-  <!-- Main Container -->
+  <!-- Wrong Network Warning -->
+  <div id="networkAlert">
+    ⚠️ Bạn đang kết nối sai mạng! Hãy chuyển sang mạng Ethereum Sepolia (Chain ID 11155111).
+    <button onclick="switchNetwork()">Đổi mạng ngay</button>
+  </div>
+
   <div class="container">
     <!-- Hero Banner -->
     <div class="hero">
-      <div class="hero-badge">Đề tài tốt nghiệp & nghiên cứu học phần ECO2432</div>
-      <h1>Bảo Chứng Hương Vị Cố Đô Trên Chuỗi Khối</h1>
-      <p>Giải pháp chống hàng giả mạo, bảo vệ danh tiếng các làng nghề đặc sản Huế (Mè xửng, Tôm chua, Trà sen, Dầu tràm) với lịch sử chuỗi cung ứng bất biến.</p>
+      <div class="hero-badge">Học Phần ECO2432 • Lab 15: Public DApp & Presentation Plan</div>
+      <h1>Truy Xuất Nguồn Gốc Đặc Sản Huế Trên Blockchain</h1>
+      <p>Bảo chứng nguồn gốc bất biến, chống hàng giả mạo các làng nghề truyền thống xứ Huế (Mè xửng, Tôm chua, Trà Cung đình, Dầu tràm) bằng Hợp đồng Thông minh Sepolia & Tem QR Động.</p>
     </div>
 
-    <!-- Navigation Tabs: The 3 Core Workflow Steps -->
+    <!-- Mapping Info Card (Ghi nhan theo yeu cau Lab 15) -->
+    <div style="background: rgba(22, 7, 40, 0.7); border: 1px solid var(--border-glass); border-radius: 14px; padding: 0.9rem 1.2rem; margin-bottom: 1.2rem; font-size: 0.82rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+      <div>📍 <strong>Hợp đồng Sepolia:</strong> <a href="https://sepolia.etherscan.io/address/0x35655079aEbB215E58e379D5a8c2f1f3a5323C6b" target="_blank" class="hash-link" id="contractAddressDisplay">0x3565...3C6b</a></div>
+      <div>⚡ <strong>Ví Đang Kết Nối:</strong> <span id="accountDisplay" style="color: #34d399;">Chưa kết nối (Chế độ Trực quan)</span></div>
+      <div>💰 <strong>Phí tạo lô:</strong> <span id="feeDisplay" style="color: #fbbf24;">0.001 ETH</span></div>
+    </div>
+
+    <!-- Navigation Tabs -->
     <div class="tabs-nav">
-      <button class="tab-btn active" onclick="switchTab('create')">
-        <span>📦</span> 1. Khởi Tạo Lô Đặc Sản (Cơ sở)
+      <button class="tab-btn active" id="tabBtnCreate" onclick="switchTab('create')">
+        📦 1. Tạo Lô Đặc Sản (Cơ sở)
       </button>
-      <button class="tab-btn" onclick="switchTab('checkpoint')">
-        <span>🚚</span> 2. Thêm Chặng Theo Đúng Vai
+      <button class="tab-btn" id="tabBtnCheckpoint" onclick="switchTab('checkpoint')">
+        🚚 2. Thêm Chặng Theo Vai
       </button>
-      <button class="tab-btn" onclick="switchTab('lookup')">
-        <span>🔍</span> 3. Quét QR & Xem Lịch Sử
+      <button class="tab-btn" id="tabBtnLookup" onclick="switchTab('lookup')">
+        🔍 3. Quét QR & Xem Lịch Sử
       </button>
     </div>
 
-    <!-- ================= TAB 1: TAO LO HANG (PRODUCER) ================= -->
-    <div id="tab-create" class="tab-pane active">
-      <div class="card">
-        <div class="card-title">
-          <span>📦</span> Khởi Tạo Lô Hàng Mới (Dành cho Cơ Sở Sản Xuất)
-        </div>
-        <div class="card-desc">
-          Chỉ các cơ sở làng nghề được cấp quyền <code>ROLE_PRODUCER</code> mới có thể đưa lô đặc sản lên Smart Contract.
-        </div>
+    <!-- TAB 1: KHOI TAO LO HANG (ROLE_PRODUCER) -->
+    <div class="card-panel active" id="panelCreate">
+      <div class="panel-header">
+        <h2 class="panel-title">📦 Khởi Tạo Lô Hàng Đặc Sản Mới</h2>
+        <p class="panel-desc">Chỉ tài khoản có vai trò Cơ sở sản xuất (ROLE_PRODUCER) và đã ký quỹ 0.05 ETH mới có quyền tạo lô. Phí tạo lô: 0.001 ETH chuyển vào Quỹ OCOP.</p>
+      </div>
 
-        <form id="createBatchForm" onsubmit="handleCreateBatch(event)">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="batchCode">Mã Lô Hàng (Định danh độc nhất):</label>
-              <input type="text" id="batchCode" required value="HL-MEXUNG-2026-001" placeholder="Ví dụ: HL-MEXUNG-2026-001">
-            </div>
-
-            <div class="form-group">
-              <label for="productSelect">Tên Đặc Sản Huế:</label>
-              <select id="productSelect" onchange="updateProductDetails(this.value)">
-                <option value="Mè xửng Thiên Hương Thượng Hạng">Mè xửng Thiên Hương Thượng Hạng (Phú Hậu)</option>
-                <option value="Tôm chua Trọng Tín Đậm Vị Cố Đô">Tôm chua Trọng Tín Đậm Vị Cố Đô (Đặng Tất)</option>
-                <option value="Trà Cung Đình Đức Phượng 18 Vị">Trà Cung Đình Đức Phượng 18 Vị (Phan Chu Trinh)</option>
-                <option value="Tinh Dầu Tràm Cung Đình Huế">Tinh Dầu Tràm Cung Đình Huế (Lộc Thủy, Phú Lộc)</option>
-                <option value="Nón Bài Thơ Tây Hồ">Nón Bài Thơ Làng Tây Hồ (Phú Hồ, Phú Vang)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="originInput">Vùng Nguyên Liệu / Địa Chỉ Xưởng:</label>
-              <input type="text" id="originInput" required value="20 Chi Lăng, Phường Phú Hậu, TP Huế">
-            </div>
-
-            <div class="form-group">
-              <label for="standardInput">Tiêu Chuẩn Chất Lượng / OCOP:</label>
-              <input type="text" id="standardInput" value="Chứng nhận OCOP 4 Sao Tỉnh Thừa Thiên Huế">
-            </div>
-
-            <div class="form-group full-width">
-              <label for="metadataInput">Chứng từ & Hình ảnh (IPFS Hash / URL):</label>
-              <input type="text" id="metadataInput" value="ipfs://QmThienHuongMeXungCertification2026">
-            </div>
+      <form id="formCreateBatch" onsubmit="handleCreateBatch(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mã Lô Hàng (Batch Code)</label>
+            <input type="text" id="batchCode" required placeholder="VD: HL-MEXUNG-2026-001" maxlength="64">
           </div>
+          <div class="form-group">
+            <label>Đặc Sản Làng Nghề</label>
+            <select id="productSelect" onchange="onProductChange(this.value)">
+              <option value="Mè xửng Thiên Hương Thượng Hạng">Mè xửng Thiên Hương Thượng Hạng (OCOP 4 Sao)</option>
+              <option value="Tôm chua Trọng Tín Đậm Vị Cố Đô">Tôm chua Trọng Tín Đậm Vị Cố Đô (OCOP 4 Sao)</option>
+              <option value="Trà Cung Đình Đức Phượng 26 Vị Thảo Mộc">Trà Cung Đình Đức Phượng (OCOP 5 Sao)</option>
+              <option value="Tinh Dầu Tràm Lộc Thủy Nguyên Chất">Tinh Dầu Tràm Lộc Thủy Nguyên Chất</option>
+              <option value="Nón Bài Thơ Làng Tây Hồ Truyền Thống">Nón Bài Thơ Làng Tây Hồ</option>
+            </select>
+          </div>
+        </div>
 
-          <button type="submit" class="btn-primary">
-            <span>✨</span> Tạo Lô Hàng On-chain & Sinh Mã QR
-          </button>
-        </form>
+        <div class="form-group">
+          <label>Địa Chỉ Cơ Sở Sản Xuất (Origin Location)</label>
+          <input type="text" id="originLocation" required value="20 Chi Lăng, Phường Phú Hậu, TP Huế" maxlength="128">
+        </div>
 
-        <!-- Result Box with QR Code -->
-        <div id="createResultBox" class="result-box">
-          <h3 style="color: var(--hue-gold-light); margin-bottom: 0.5rem;">🎉 Khởi Tạo Lô Hàng Thành Công Trên Blockchain!</h3>
-          <p style="font-size: 0.9rem; color: #cbd5e1;">Lô hàng đã được ghi nhận vào hợp đồng thông minh <code>ProjectCore.sol</code> với Chặng 0 (Origin Checkpoint).</p>
-          
-          <div class="qr-container">
-            <div class="qr-code-wrapper" id="qrContainer"></div>
-            <div>
-              <p><strong>Mã Lô:</strong> <span id="resBatchCode" style="color: var(--hue-gold);"></span></p>
-              <p><strong>Sản Phẩm:</strong> <span id="resProductName"></span></p>
-              <p><strong>Ví Cơ Sở Ký Xác Thực:</strong> <code id="resProducerAddr">0x82d022a704706B2f144863D619D7418F8a0f19A7</code></p>
-              <p><strong>Mã Băm Giao Dịch (TxHash):</strong> <a href="#" id="resTxHash" class="hash-link" target="_blank"></a></p>
-              <button class="btn-primary" style="margin-top: 0.75rem; padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="copyQRLink()">
-                📋 Sao Chép Liên Kết Quét QR
-              </button>
+        <div class="form-group">
+          <label>Mã Băm Chứng Nhận IPFS / SHA-256 (Metadata URI)</label>
+          <input type="text" id="metadataURI" required value="ipfs://QmThienHuongHeritageOriginCertified2026">
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmitCreate">
+          <span>🚀</span> <span id="btnSubmitCreateText">Khởi Tạo Lô Trên Blockchain (Nộp 0.001 ETH)</span>
+        </button>
+      </form>
+
+      <!-- Result Box with QR Code -->
+      <div class="result-box" id="createResultBox">
+        <div class="result-grid">
+          <div class="qr-holder" id="qrContainer"></div>
+          <div class="res-info">
+            <h4>✓ Khởi Tạo Lô Thành Công Trên Blockchain!</h4>
+            <p>Mã lô hàng: <code id="resBatchCode">-</code></p>
+            <p>Sản phẩm: <strong id="resProductName" style="color: #f1f5f9;">-</strong></p>
+            <p>Giao dịch Sepolia: <a id="resTxHashLink" href="#" target="_blank" class="hash-link"><code id="resTxHash">-</code></a></p>
+            <div style="margin-top: 10px;">
+              <button class="chip" onclick="copyTraceUrl()">📋 Sao Chép Link Quét QR</button>
+              <button class="chip" onclick="viewCreatedBatch()">🔍 Xem Ngay Lịch Sử</button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ================= TAB 2: THEM CHANG THEO DUNG VAI ================= -->
-    <div id="tab-checkpoint" class="tab-pane">
-      <div class="card">
-        <div class="card-title">
-          <span>🚚</span> Cập Nhật Chặng Hành Trình (Kiểm Tra Phân Quyền Đúng Vai)
-        </div>
-        <div class="card-desc">
-          Mỗi chặng (kiểm định, vận chuyển, nhập kho bán lẻ) chỉ được phép ghi nhận khi ví gửi giao dịch sở hữu đúng vai trò tương ứng.
-        </div>
+    <!-- TAB 2: THEM CHANG THEO DUNG VAI (RBAC) -->
+    <div class="card-panel" id="panelCheckpoint">
+      <div class="panel-header">
+        <h2 class="panel-title">🚚 Ghi Nhận Chặng Chuỗi Cung Ứng (RBAC)</h2>
+        <p class="panel-desc">Mỗi chặng chỉ được ký bởi đúng vai trò hợp lệ (Vận chuyển: ROLE_LOGISTICS, Kiểm định OCOP: ROLE_INSPECTOR, Điểm bán: ROLE_RETAILER).</p>
+      </div>
 
-        <form id="addCheckpointForm" onsubmit="handleAddCheckpoint(event)">
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="cpBatchCode">Mã Lô Hàng Cần Cập Nhật:</label>
-              <input type="text" id="cpBatchCode" required value="HL-MEXUNG-2026-001">
-            </div>
-
-            <div class="form-group">
-              <label for="cpRoleSelect">Vai Trò Đang Thao Tác:</label>
-              <select id="cpRoleSelect" onchange="suggestCheckpointActions(this.value)">
-                <option value="ROLE_LOGISTICS">Đơn vị Vận chuyển (ROLE_LOGISTICS)</option>
-                <option value="ROLE_INSPECTOR">Cơ quan Kiểm định OCOP (ROLE_INSPECTOR)</option>
-                <option value="ROLE_RETAILER">Đại lý / Điểm bán lẻ (ROLE_RETAILER)</option>
-                <option value="ROLE_PRODUCER">Cơ sở sản xuất (ROLE_PRODUCER)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="cpLocation">Địa Điểm Thực Hiện Chặng:</label>
-              <input type="text" id="cpLocation" required value="Kho Trung Chuyển Ga Huế, Phường Đúc, TP Huế">
-            </div>
-
-            <div class="form-group">
-              <label for="cpAction">Nội Dung Hành Động / Kiểm Tra:</label>
-              <input type="text" id="cpAction" required value="Niêm phong thùng chống ẩm, xuất kho tàu hỏa đi Hà Nội">
-            </div>
-
-            <div class="form-group full-width">
-              <label for="cpUri">Ghi chú bổ sung / Chứng từ vận đơn (URL/IPFS):</label>
-              <input type="text" id="cpUri" value="ipfs://QmHueRailwaysWaybill2026X01">
-            </div>
+      <form id="formAddCheckpoint" onsubmit="handleAddCheckpoint(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mã Lô Hàng Cần Cập Nhật</label>
+            <input type="text" id="cpBatchCode" required value="HL-MEXUNG-2026-001" placeholder="Nhập mã lô">
           </div>
-
-          <div style="display: flex; align-items: center; gap: 10px; margin-top: 1rem; flex-wrap: wrap;">
-            <button type="submit" class="btn-primary">
-              <span>✍️</span> Ký Giao Dịch & Thêm Chặng Vào Chuỗi Khối
-            </button>
-            <button type="button" class="btn-fraud-demo" onclick="demoFraudulentAttempt()">
-              ⚠️ Thử Nghiệm Gian Lận (Mạo Danh Vai Trò Bị Chặn)
-            </button>
+          <div class="form-group">
+            <label>Vai Trò Ký Xác Nhận</label>
+            <select id="cpRoleSelect" onchange="onRoleChange(this.value)">
+              <option value="ROLE_LOGISTICS">Đơn vị Vận chuyển (ROLE_LOGISTICS)</option>
+              <option value="ROLE_INSPECTOR">Kiểm định & Chứng nhận (ROLE_INSPECTOR)</option>
+              <option value="ROLE_RETAILER">Điểm Bán Lẻ / Cửa Hàng (ROLE_RETAILER)</option>
+              <option value="ROLE_PRODUCER">Cơ Sở Sản Xuất (ROLE_PRODUCER)</option>
+            </select>
           </div>
-        </form>
+        </div>
+
+        <div class="form-group">
+          <label>Địa Điểm Ghi Nhận (Location)</label>
+          <input type="text" id="cpLocation" required value="Kho Ga Huế, Phường Đúc, TP Huế" maxlength="128">
+        </div>
+
+        <div class="form-group">
+          <label>Hành Động Chuỗi Cung Ứng (Action)</label>
+          <textarea id="cpAction" rows="2" required>Đóng kiện bảo quản chống ẩm, bàn giao tàu Thống Nhất SE2 vận chuyển đi Hà Nội</textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Tài Liệu Đính Kèm (Metadata URI)</label>
+          <input type="text" id="cpMetadataURI" required value="ipfs://QmGaHueLogisticsManifest2026">
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmitCheckpoint">
+          <span>📝</span> <span id="btnSubmitCheckpointText">Ký Giao Dịch Ghi Nhận Chặng</span>
+        </button>
+      </form>
+
+      <!-- Negative Test Demo Button -->
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(245, 158, 11, 0.15); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <span style="font-size: 0.82rem; color: #f87171;">⚠️ Thử nghiệm kịch bản vi phạm quy tắc an toàn (Lab 13 - 15):</span>
+        <button type="button" class="btn-secondary" onclick="demoFraudAttempt()">
+          🛡️ Thử Nghiệm Gian Lận (Negative Test)
+        </button>
       </div>
     </div>
 
-    <!-- ================= TAB 3: QUET QR & TRA CUU LICH SU ================= -->
-    <div id="tab-lookup" class="tab-pane">
-      <div class="card">
-        <div class="card-title">
-          <span>🔍</span> Tra Cứu & Quét Mã QR Lô Hàng Đặc Sản
-        </div>
-        <div class="card-desc">
-          Khách hàng quét mã QR trên bao bì sản phẩm để xem toàn bộ lịch sử minh bạch bất biến, không thể bị tẩy xóa.
-        </div>
+    <!-- TAB 3: QUET QR & TRA CUU LICH SU -->
+    <div class="card-panel" id="panelLookup">
+      <div class="panel-header">
+        <h2 class="panel-title">🔍 Tra Cứu & Xác Thực Nguồn Gốc Đặc Sản</h2>
+        <p class="panel-desc">Du khách và người tiêu dùng tra cứu lịch sử minh bạch hoàn toàn miễn phí gas. Mọi dữ liệu đã ghi trên Blockchain là vĩnh viễn và bất biến.</p>
+      </div>
 
-        <div style="display: flex; gap: 10px; max-width: 600px; margin-bottom: 1rem;">
-          <input type="text" id="lookupCodeInput" placeholder="Nhập mã lô hàng (Ví dụ: HL-MEXUNG-2026-001)" value="HL-MEXUNG-2026-001" style="flex: 1;">
-          <button class="btn-primary" style="margin-top: 0; padding: 0.75rem 1.5rem;" onclick="performLookup()">
-            Tra Cứu
-          </button>
-        </div>
+      <div style="display: flex; gap: 8px; margin-bottom: 0.6rem;">
+        <input type="text" id="lookupInput" placeholder="Nhập mã lô hàng (VD: HL-MEXUNG-2026-001)" value="HL-MEXUNG-2026-001">
+        <button class="btn-submit" style="width: auto; padding: 0.75rem 1.4rem;" onclick="performLookup()">
+          Tra Cứu
+        </button>
+      </div>
 
-        <div style="font-size: 0.85rem; color: #94a3b8;">Chọn nhanh các lô hàng mẫu để demo:</div>
-        <div class="sample-chips">
-          <div class="chip" onclick="quickSelectBatch('HL-MEXUNG-2026-001')">🏮 Mè xửng Thiên Hương (HL-MEXUNG-2026-001)</div>
-          <div class="chip" onclick="quickSelectBatch('HL-TOMCHUA-2026-008')">🦐 Tôm chua Trọng Tín (HL-TOMCHUA-2026-008)</div>
-          <div class="chip" onclick="quickSelectBatch('HL-TRACD-2026-015')">🍵 Trà Cung Đình Huế (HL-TRACD-2026-015)</div>
-        </div>
+      <!-- Quick sample chips -->
+      <div class="sample-chips">
+        <span style="font-size: 0.78rem; color: var(--text-muted); align-self: center;">Mẫu thử nhanh:</span>
+        <span class="chip" onclick="quickSelect('HL-MEXUNG-2026-001')">Mè xửng Thiên Hương (HL-MEXUNG-2026-001)</span>
+        <span class="chip" onclick="quickSelect('HL-TOMCHUA-2026-008')">Tôm chua Trọng Tín (HL-TOMCHUA-2026-008)</span>
+      </div>
 
-        <!-- Lookup Result Detail Header -->
-        <div id="batchDetailHeader" class="result-box" style="display: block;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
-            <div>
-              <h2 id="lookupProductName" style="font-family: 'Playfair Display', serif; color: var(--hue-gold-light); font-size: 1.8rem;">
-                Mè xửng Thiên Hương Thượng Hạng
-              </h2>
-              <div style="margin-top: 4px; display: flex; align-items: center; gap: 10px;">
-                <span style="color: #cbd5e1; font-weight: 600;">Mã định danh: <span id="lookupBatchCode" style="color: var(--hue-gold);">HL-MEXUNG-2026-001</span></span>
-                <span id="lookupOcopBadge" class="badge-network" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
-                  ✓ OCOP 4 Sao Đã Xác Thực
-                </span>
-              </div>
-            </div>
-            <div style="text-align: right;">
-              <div style="font-size: 0.8rem; color: #94a3b8;">Khởi tạo ngày: <span id="lookupCreatedAt">04/10/2026 08:30:00</span></div>
-              <div style="font-size: 0.8rem; color: #94a3b8;">Cơ sở sản xuất: <code id="lookupProducer">0x82d0...19A7</code></div>
-            </div>
+      <!-- Detail Showcase -->
+      <div id="lookupDetailBox" style="background: rgba(18, 5, 32, 0.85); border: 1px solid var(--border-glass); border-radius: 14px; padding: 1.3rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem; border-bottom: 1px solid rgba(245, 158, 11, 0.15); padding-bottom: 0.8rem;">
+          <div>
+            <h3 id="detProductName" style="font-family: 'Playfair Display', serif; font-size: 1.35rem; color: #fbbf24;">Mè xửng Thiên Hương Thượng Hạng</h3>
+            <p style="font-size: 0.84rem; color: var(--text-muted); margin-top: 2px;">
+              Mã Lô: <strong id="detBatchCode" style="color: #fff;">HL-MEXUNG-2026-001</strong> | Cơ sở: <span id="detProducer">0x82d0...19A7</span>
+            </p>
           </div>
-
-          <!-- Timeline of Checkpoints -->
-          <div style="margin-top: 2rem;">
-            <h4 style="color: #ffffff; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
-              <span>📜</span> Lịch Sử Chuỗi Cung Ứng Bất Biến (On-chain Timeline)
-            </h4>
-            <div class="timeline" id="timelineContainer">
-              <!-- Timeline items dynamically rendered here -->
-            </div>
+          <div id="detOcopBadge" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #34d399; font-weight: 700; font-size: 0.8rem; padding: 0.35rem 0.8rem; border-radius: 9999px;">
+            ✓ OCOP 4 Sao Đã Xác Thực
           </div>
+        </div>
+
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+          📍 <strong>Vùng nguyên liệu gốc:</strong> <span id="detOrigin" style="color: #f1f5f9;">20 Chi Lăng, Phường Phú Hậu, TP Huế</span>
+        </div>
+
+        <!-- Dynamic Timeline -->
+        <h4 style="font-size: 0.95rem; color: var(--hue-gold-light); margin-bottom: 0.6rem;">📜 Dòng Thời Gian Chuỗi Cung Ứng (Immutable Timeline):</h4>
+        <div class="timeline" id="timelineList">
+          <!-- Populated by JS -->
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Toast Notification Popup -->
-  <div id="toast" class="toast">
-    <div id="toastMessage">Thông báo giao dịch</div>
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <div id="toastContent">Thông báo hệ thống</div>
   </div>
 
   <footer>
-    <p>HueLegend — Nền tảng Truy xuất Nguồn gốc Đặc sản Huế bằng Hợp đồng thông minh Ethereum Sepolia.</p>
-    <p style="margin-top: 6px; font-size: 0.78rem; color: #64748b;">Học phần ECO2432 — Tiền điện tử & Hợp đồng thông minh | Đại học Kinh tế, Đại học Huế.</p>
+    <p>HueLegend — Dự Án Nghiên Cứu & Phát Triển Hợp Đồng Thông Minh ECO2432</p>
+    <p>Thành viên: Ngô Thị Thuỷ Vân (23K4300023) & Ngô Quỳnh Trang (23K4300041) • Trường Đại học Kinh tế Huế</p>
+    <p style="margin-top: 4px; font-size: 0.76rem; color: #64748b;">Hợp đồng triển khai tại Sepolia: <code>0x35655079aEbB215E58e379D5a8c2f1f3a5323C6b</code></p>
   </footer>
 
   <script>
-    // ================= DỮ LIỆU MẪU BAN ĐẦU (DEMO DATABASE) =================
-    const DATABASE = {
+    // =========================================================================
+    // CAU HINH HOP DONG VA WEB3 (THEO YEU CAU BUOC 1 - LAB 15)
+    // =========================================================================
+    const CONTRACT_ADDRESS = "0x35655079aEbB215E58e379D5a8c2f1f3a5323C6b";
+    const SEPOLIA_CHAIN_ID = 11155111;
+    const SEPOLIA_CHAIN_HEX = "0xaa36a7";
+    
+    // ABI rut gon da xuat tu ProjectCore.sol
+    const CONTRACT_ABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"inputs":[{"internalType":"string","name":"batchCode","type":"string"}],"name":"BatchAlreadyExists","type":"error"},{"inputs":[{"internalType":"string","name":"batchCode","type":"string"}],"name":"BatchAlreadyVerified","type":"error"},{"inputs":[{"internalType":"string","name":"batchCode","type":"string"}],"name":"BatchNotFound","type":"error"},{"inputs":[{"internalType":"string","name":"batchCode","type":"string"}],"name":"BatchNotVerified","type":"error"},{"inputs":[{"internalType":"string","name":"paramName","type":"string"}],"name":"EmptyString","type":"error"},{"inputs":[{"internalType":"uint256","name":"attempted","type":"uint256"},{"internalType":"uint256","name":"maxLimit","type":"uint256"}],"name":"FeeExceedsLimit","type":"error"},{"inputs":[{"internalType":"uint256","name":"provided","type":"uint256"},{"internalType":"uint256","name":"requiredFee","type":"uint256"}],"name":"InsufficientBatchFee","type":"error"},{"inputs":[],"name":"InvalidAddress","type":"error"},{"inputs":[{"internalType":"string","name":"batchCode","type":"string"},{"internalType":"uint256","name":"maxAllowed","type":"uint256"}],"name":"MaxCheckpointsExceeded","type":"error"},{"inputs":[],"name":"NothingToWithdraw","type":"error"},{"inputs":[{"internalType":"address","name":"owner","type":"address"}],"name":"OwnableInvalidOwner","type":"error"},{"inputs":[{"internalType":"address","name":"account","type":"address"}],"name":"OwnableUnauthorizedAccount","type":"error"},{"inputs":[],"name":"ReentrancyGuardReentrantCall","type":"error"},{"inputs":[{"internalType":"uint256","name":"provided","type":"uint256"},{"internalType":"uint256","name":"minimum","type":"uint256"}],"name":"StakeTooLow","type":"error"},{"inputs":[{"internalType":"uint256","name":"unlockAt","type":"uint256"},{"internalType":"uint256","name":"currentTime","type":"uint256"}],"name":"StillLocked","type":"error"},{"inputs":[{"internalType":"string","name":"paramName","type":"string"},{"internalType":"uint256","name":"maxAllowed","type":"uint256"}],"name":"StringTooLong","type":"error"},{"inputs":[],"name":"TransferFailed","type":"error"},{"inputs":[{"internalType":"address","name":"caller","type":"address"},{"internalType":"bytes32","name":"requiredRole","type":"bytes32"}],"name":"UnauthorizedCaller","type":"error"},{"inputs":[],"name":"ZeroAmount","type":"error"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"string","name":"batchCode","type":"string"},{"indexed":false,"internalType":"string","name":"productName","type":"string"},{"indexed":true,"internalType":"address","name":"producer","type":"address"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"BatchCreated","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"oldFee","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"BatchCreationFeeUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"producer","type":"address"},{"indexed":true,"internalType":"string","name":"batchCode","type":"string"},{"indexed":false,"internalType":"uint256","name":"feeAmount","type":"uint256"}],"name":"BatchFeeCollected","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"string","name":"batchCode","type":"string"},{"indexed":true,"internalType":"address","name":"inspector","type":"address"},{"indexed":false,"internalType":"string","name":"reason","type":"string"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"BatchVerificationRevoked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"string","name":"batchCode","type":"string"},{"indexed":true,"internalType":"address","name":"inspector","type":"address"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"BatchVerified","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"string","name":"batchCode","type":"string"},{"indexed":true,"internalType":"address","name":"recorder","type":"address"},{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"},{"indexed":false,"internalType":"string","name":"action","type":"string"},{"indexed":false,"internalType":"string","name":"location","type":"string"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"CheckpointAdded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"oldFund","type":"address"},{"indexed":true,"internalType":"address","name":"newFund","type":"address"}],"name":"EcosystemFundUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"producer","type":"address"},{"indexed":false,"internalType":"uint256","name":"refundAmount","type":"uint256"}],"name":"ExcessFeeRefunded","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"}],"name":"RoleAssigned","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"account","type":"address"},{"indexed":true,"internalType":"bytes32","name":"role","type":"bytes32"}],"name":"RoleRevoked","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"producer","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"unlockTime","type":"uint256"}],"name":"StakeDeposited","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"internalType":"uint256","name":"oldDuration","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"newDuration","type":"uint256"}],"name":"StakeLockDurationUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"producer","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"StakeWithdrawn","type":"event"},{"inputs":[],"name":"ROLE_ADMIN","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ROLE_INSPECTOR","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ROLE_LOGISTICS","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ROLE_PRODUCER","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"ROLE_RETAILER","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"batchCode","type":"string"},{"internalType":"bytes32","name":"role","type":"bytes32"},{"internalType":"string","name":"location","type":"string"},{"internalType":"string","name":"action","type":"string"},{"internalType":"string","name":"metadataURI","type":"string"}],"name":"addCheckpoint","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"batchCreationFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"batchCode","type":"string"},{"internalType":"string","name":"productName","type":"string"},{"internalType":"string","name":"origin","type":"string"},{"internalType":"string","name":"initialMetadataURI","type":"string"}],"name":"createBatch","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"ecosystemFund","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"batchCode","type":"string"}],"name":"getBatch","outputs":[{"components":[{"internalType":"string","name":"batchCode","type":"string"},{"internalType":"string","name":"productName","type":"string"},{"internalType":"string","name":"origin","type":"string"},{"internalType":"uint256","name":"createdAt","type":"uint256"},{"internalType":"address","name":"producer","type":"address"},{"internalType":"bool","name":"isVerified","type":"bool"},{"internalType":"bool","name":"exists","type":"bool"}],"internalType":"struct ProjectCore.Batch","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"account","type":"address"},{"internalType":"bytes32","name":"role","type":"bytes32"}],"name":"hasRole","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"producerStake","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"producerUnlockTime","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"newFee","type":"uint256"}],"name":"setBatchCreationFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"batchCode","type":"string"},{"internalType":"string","name":"inspectorNote","type":"string"},{"internalType":"string","name":"certificateURI","type":"string"}],"name":"verifyBatch","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"withdrawStake","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+
+    let provider = null;
+    let signer = null;
+    let contract = null;
+    let currentAccount = null;
+
+    // Database mo phong san du lieu dac san Hue phuc vu xem tren di dong ngay lap tuc
+    const MOCK_DATABASE = {
       "HL-MEXUNG-2026-001": {
         batchCode: "HL-MEXUNG-2026-001",
         productName: "Mè xửng Thiên Hương Thượng Hạng",
-        origin: "20 Chi Lăng, Phường Phú Hậu, TP Huế",
-        createdAt: "04/10/2026 08:15:20",
+        originLocation: "20 Chi Lăng, Phường Phú Hậu, TP Huế",
         producer: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
         isVerified: true,
         checkpoints: [
           {
-            timestamp: "04/10/2026 08:15:20",
-            recorder: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
             role: "ROLE_PRODUCER",
             location: "Xưởng Mè xửng Thiên Hương, Phú Hậu, Huế",
-            action: "Thu hoạch vừng mè trắng tuyển chọn, nấu mạch nha và đóng bánh nguyên bản",
-            txHash: "0x4a7e93f1bc0913982f126da3517865239e7fa10b91d6342c8845ef1a2e99f012",
-            metadataURI: "ipfs://QmThienHuongOriginHarvest001"
+            action: "Thu hoạch mè vừng trắng tuyển chọn, nấu mạch nha và đóng bánh nguyên bản",
+            recorder: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+            timeStr: "04/10/2026 08:15:20",
+            txHash: "0xa6c9417890ef1234567890abcdef1234567890abcdef1234567890abcdef01"
           },
           {
-            timestamp: "04/10/2026 11:30:45",
-            recorder: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
             role: "ROLE_INSPECTOR",
             location: "Chi cục Quản lý Chất lượng Nông Lâm Thủy sản TT Huế",
-            action: "Kiểm nghiệm vi sinh & an toàn vệ sinh thực phẩm, cấp tem OCOP 4 sao",
-            txHash: "0x8b321fa7c90823192f87a01bce239f81a7d65412e0984512cba12398fa452109",
-            metadataURI: "ipfs://QmOCOP4StarHueInspectionCertified"
+            action: "Kiểm nghiệm vi sinh an toàn thực phẩm, cấp chứng nhận OCOP 4 sao tỉnh TT Huế",
+            recorder: "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+            timeStr: "04/10/2026 11:30:45",
+            txHash: "0x8b321fa7c90823192f87a01bce239f81a7d65412e0984512cba12398fa452109"
           },
           {
-            timestamp: "04/10/2026 14:00:10",
-            recorder: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
             role: "ROLE_LOGISTICS",
-            location: "Kho trung chuyển Ga Huế, Phường Đúc, TP Huế",
-            action: "Đóng kiện chống ẩm, bàn giao tàu Thống Nhất SE2 vận chuyển ra Bắc",
-            txHash: "0x12c49a08123fa98e451bca890123ef8912389abcde789123456789abcdef1234",
-            metadataURI: "ipfs://QmGaHueLogisticsSE2Manifest"
+            location: "Kho Ga Huế, Phường Đúc, TP Huế",
+            action: "Đóng kiện bảo quản màng co chống ẩm, xuất kho tàu Thống Nhất SE2 đi Hà Nội",
+            recorder: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            timeStr: "04/10/2026 14:00:10",
+            txHash: "0x12c49a08123fa98e451bca890123ef8912389abcde789123456789abcdef1234"
           },
           {
-            timestamp: "04/10/2026 17:45:00",
-            recorder: "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
             role: "ROLE_RETAILER",
             location: "Cửa hàng Đặc sản Huế Quà Cố Đô, Hàng Bông, Hà Nội",
-            action: "Tiếp nhận lô hàng, kiểm tra tem niêm phong nguyên vẹn và lên kệ bán lẻ",
-            txHash: "0x78901234abcdef1234567890abcdef1234567890abcdef1234567890abcdef12",
-            metadataURI: "ipfs://QmRetailerReceiptStore01"
+            action: "Tiếp nhận lô hàng, kiểm tra tem niêm phong nguyên vẹn và lên kệ phục vụ khách",
+            recorder: "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+            timeStr: "04/10/2026 17:45:00",
+            txHash: "0x78901234abcdef1234567890abcdef1234567890abcdef1234567890abcdef12"
           }
         ]
       },
       "HL-TOMCHUA-2026-008": {
         batchCode: "HL-TOMCHUA-2026-008",
         productName: "Tôm chua Trọng Tín Đậm Vị Cố Đô",
-        origin: "21 Đặng Tất, Phường An Hòa, TP Huế",
-        createdAt: "03/10/2026 09:00:00",
+        originLocation: "21 Đặng Tất, Phường An Hòa, TP Huế",
         producer: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
         isVerified: true,
         checkpoints: [
           {
-            timestamp: "03/10/2026 09:00:00",
-            recorder: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
             role: "ROLE_PRODUCER",
             location: "Cơ sở Tôm chua Trọng Tín, Đặng Tất, Huế",
-            action: "Thu gom tôm đất tươi phá Tam Giang, ngâm ủ rượu trắng và ớt bột Huế",
-            txHash: "0xbb7894a0123fa98e451bca890123ef8912389abcde789123456789abcdef1111",
-            metadataURI: "ipfs://QmTomChuaTamGiangBatch008"
+            action: "Thu mua tôm đất tươi phá Tam Giang, ngâm ủ rượu trắng và ớt bột Huế truyền thống",
+            recorder: "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+            timeStr: "03/10/2026 09:00:00",
+            txHash: "0xbb7894a0123fa98e451bca890123ef8912389abcde789123456789abcdef1111"
           },
           {
-            timestamp: "03/10/2026 15:30:00",
-            recorder: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
             role: "ROLE_LOGISTICS",
             location: "Cảng Hàng Không Quốc Tế Phú Bài, Thừa Thiên Huế",
             action: "Vận chuyển hàng không lạnh đến TP. Hồ Chí Minh",
-            txHash: "0xcc7894a0123fa98e451bca890123ef8912389abcde789123456789abcdef2222",
-            metadataURI: "ipfs://QmPhuBaiAirCargoManifest"
+            recorder: "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+            timeStr: "03/10/2026 15:30:00",
+            txHash: "0xcc7894a0123fa98e451bca890123ef8912389abcde789123456789abcdef2222"
           }
         ]
       }
     };
 
-    // ================= CHUYEN DOI TAB GIAO DIEN =================
+    // =========================================================================
+    // GIAO TIEP VA KET NOI VI METAMASK (Ethers v6)
+    // =========================================================================
+    async function connectWallet() {
+      if (!window.ethereum) {
+        showToast("⚠️ Trình duyệt chưa cài MetaMask! Bạn đang xem ở chế độ Trực quan Khám phá.", "info");
+        currentAccount = "0x82d022a704706B2f144863D619D7418F8a0f19A7";
+        updateWalletUI(currentAccount, "(Chế độ Demo)");
+        return;
+      }
+
+      try {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        
+        // Kiem tra mang Sepolia
+        const network = await provider.getNetwork();
+        if (Number(network.chainId) !== SEPOLIA_CHAIN_ID) {
+          document.getElementById("networkAlert").style.display = "block";
+          showToast("Vui lòng chuyển sang mạng Ethereum Sepolia!", "error");
+          await switchNetwork();
+          return;
+        } else {
+          document.getElementById("networkAlert").style.display = "none";
+        }
+
+        const accounts = await provider.send("eth_requestAccounts", []);
+        currentAccount = accounts[0];
+        signer = await provider.getSigner();
+        contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+        updateWalletUI(currentAccount);
+        showToast("✓ Đã kết nối ví: " + shortenAddress(currentAccount), "success");
+
+        // Lắng nghe đổi tài khoản hoặc đổi mạng
+        window.ethereum.on('accountsChanged', (accs) => {
+          if (accs.length === 0) {
+            currentAccount = null;
+            updateWalletUI(null);
+          } else {
+            currentAccount = accs[0];
+            updateWalletUI(currentAccount);
+          }
+        });
+
+        window.ethereum.on('chainChanged', () => {
+          window.location.reload();
+        });
+
+      } catch (err) {
+        console.error(err);
+        showToast("Lỗi kết nối ví: " + (err.shortMessage || err.message), "error");
+      }
+    }
+
+    async function switchNetwork() {
+      if (!window.ethereum) return;
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: SEPOLIA_CHAIN_HEX }],
+        });
+        document.getElementById("networkAlert").style.display = "none";
+      } catch (switchError) {
+        // Neu chua them mang Sepolia thi yeu cau them mang
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: SEPOLIA_CHAIN_HEX,
+                chainName: 'Ethereum Sepolia Testnet',
+                nativeCurrency: { name: 'Sepolia ETH', symbol: 'ETH', decimals: 18 },
+                rpcUrls: ['https://rpc.sepolia.org', 'https://sepolia.gateway.tenderly.co'],
+                blockExplorerUrls: ['https://sepolia.etherscan.io']
+              }],
+            });
+          } catch (addError) {
+            console.error(addError);
+          }
+        }
+      }
+    }
+
+    function updateWalletUI(account, note = "") {
+      const btnText = document.getElementById("btnConnectText");
+      const accDisplay = document.getElementById("accountDisplay");
+      if (account) {
+        btnText.innerText = shortenAddress(account) + (note ? " " + note : "");
+        accDisplay.innerText = account;
+      } else {
+        btnText.innerText = "Kết Nối Ví";
+        accDisplay.innerText = "Chưa kết nối (Chế độ Trực quan)";
+      }
+    }
+
+    function shortenAddress(addr) {
+      if (!addr) return "";
+      return addr.substring(0, 6) + "..." + addr.substring(addr.length - 4);
+    }
+
+    // =========================================================================
+    // CHUYEN DOI TAB GIAO DIEN
+    // =========================================================================
     function switchTab(tabKey) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.card-panel').forEach(p => p.classList.remove('active'));
 
       if (tabKey === 'create') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        document.getElementById('tab-create').classList.add('active');
+        document.getElementById('tabBtnCreate').classList.add('active');
+        document.getElementById('panelCreate').classList.add('active');
       } else if (tabKey === 'checkpoint') {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        document.getElementById('tab-checkpoint').classList.add('active');
+        document.getElementById('tabBtnCheckpoint').classList.add('active');
+        document.getElementById('panelCheckpoint').classList.add('active');
       } else if (tabKey === 'lookup') {
-        document.querySelectorAll('.tab-btn')[2].classList.add('active');
-        document.getElementById('tab-lookup').classList.add('active');
+        document.getElementById('tabBtnLookup').classList.add('active');
+        document.getElementById('panelLookup').classList.add('active');
         performLookup();
       }
     }
 
-    // ================= KET NOI VI WEB3 (METAMASK) =================
-    let userAddress = null;
-    async function toggleWallet() {
-      if (window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-          userAddress = accounts[0];
-          document.getElementById('connectBtn').innerText = userAddress.substring(0, 6) + '...' + userAddress.substring(38);
-          showToast("Đã kết nối ví Web3: " + userAddress, "success");
-        } catch (err) {
-          showToast("Người dùng đã hủy kết nối ví", "error");
-        }
-      } else {
-        // Che do gia lap
-        userAddress = "0x82d022a704706B2f144863D619D7418F8a0f19A7";
-        document.getElementById('connectBtn').innerText = "0x82d0...19A7 (Demo)";
-        showToast("Chế độ Demo: Đã kết nối ví mặc định Sepolia 0x82d0...19A7", "success");
-      }
-    }
-
-    // ================= 1. XU LY TAO LO HANG & SINH MA QR =================
-    function handleCreateBatch(e) {
+    // =========================================================================
+    // BUOC 1 & 2: KHOI TAO LO HANG ON-CHAIN & TRY/CATCH BAT LOI NGUOI DUNG
+    // =========================================================================
+    async function handleCreateBatch(e) {
       e.preventDefault();
       const code = document.getElementById('batchCode').value.trim();
       const name = document.getElementById('productSelect').value;
-      const origin = document.getElementById('originInput').value.trim();
-      const uri = document.getElementById('metadataInput').value.trim();
+      const origin = document.getElementById('originLocation').value.trim();
+      const uri = document.getElementById('metadataURI').value.trim();
 
-      if (DATABASE[code]) {
-        showToast("Mã lô hàng này đã tồn tại trên Blockchain! Hãy chọn mã khác.", "error");
-        return;
+      const btn = document.getElementById('btnSubmitCreate');
+      const btnText = document.getElementById('btnSubmitCreateText');
+
+      // Chuyen trang thai loading
+      btn.disabled = true;
+      btnText.innerText = "⏳ Đang gửi giao dịch lên Blockchain Sepolia...";
+
+      try {
+        let txHash = "";
+
+        if (contract && signer) {
+          // Tuong tac Web3 on-chain thuc su
+          const fee = ethers.parseEther("0.001");
+          const tx = await contract.createBatch(code, name, origin, uri, { value: fee });
+          btnText.innerText = "⏳ Chờ xác nhận khối...";
+          const receipt = await tx.wait();
+          txHash = receipt.hash;
+        } else {
+          // Che do interactive demo khi chua co vi MetaMask
+          await new Promise(r => setTimeout(r, 1000));
+          txHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+        }
+
+        // Cap nhat vao CSDL demo
+        const nowStr = new Date().toLocaleString('vi-VN');
+        MOCK_DATABASE[code] = {
+          batchCode: code,
+          productName: name,
+          originLocation: origin,
+          producer: currentAccount || "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+          isVerified: false,
+          checkpoints: [
+            {
+              role: "ROLE_PRODUCER",
+              location: origin,
+              action: "Khởi tạo lô đặc sản tại cơ sở làng nghề và nộp phí vào Quỹ OCOP",
+              recorder: currentAccount || "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+              timeStr: nowStr,
+              txHash: txHash
+            }
+          ]
+        };
+
+        // Sinh ma QR dong
+        const qrContainer = document.getElementById('qrContainer');
+        qrContainer.innerHTML = "";
+        const qrLink = window.location.origin + window.location.pathname + "?batch=" + encodeURIComponent(code);
+        new QRCode(qrContainer, {
+          text: qrLink,
+          width: 140,
+          height: 140,
+          colorDark: "#160728",
+          colorLight: "#ffffff"
+        });
+
+        // Hien thi hop ket qua
+        document.getElementById('resBatchCode').innerText = code;
+        document.getElementById('resProductName').innerText = name;
+        document.getElementById('resTxHash').innerText = shortenAddress(txHash);
+        document.getElementById('resTxHashLink').href = "https://sepolia.etherscan.io/tx/" + txHash;
+        document.getElementById('createResultBox').style.display = "block";
+
+        // Dong bo sang tab khac
+        document.getElementById('cpBatchCode').value = code;
+        document.getElementById('lookupInput').value = code;
+
+        showToast("✓ Khởi tạo lô hàng thành công! Mã QR đã được cấp phát.", "success");
+
+      } catch (err) {
+        console.error(err);
+        handleCustomError(err);
+      } finally {
+        btn.disabled = false;
+        btnText.innerText = "Khởi Tạo Lô Trên Blockchain (Nộp 0.001 ETH)";
       }
-
-      const now = new Date();
-      const timeStr = now.toLocaleDateString('vi-VN') + " " + now.toLocaleTimeString('vi-VN');
-      const mockTx = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
-
-      // Luu vao database on-chain mo phong
-      DATABASE[code] = {
-        batchCode: code,
-        productName: name,
-        origin: origin,
-        createdAt: timeStr,
-        producer: userAddress || "0x82d022a704706B2f144863D619D7418F8a0f19A7",
-        isVerified: false,
-        checkpoints: [
-          {
-            timestamp: timeStr,
-            recorder: userAddress || "0x82d022a704706B2f144863D619D7418F8a0f19A7",
-            role: "ROLE_PRODUCER",
-            location: origin,
-            action: "Khởi tạo lô đặc sản tại cơ sở sản xuất",
-            txHash: mockTx,
-            metadataURI: uri
-          }
-        ]
-      };
-
-      // Sinh ma QR
-      const qrEl = document.getElementById('qrContainer');
-      qrEl.innerHTML = '';
-      const qrTargetUrl = window.location.origin + window.location.pathname + "?batch=" + encodeURIComponent(code);
-      new QRCode(qrEl, {
-        text: qrTargetUrl,
-        width: 140,
-        height: 140,
-        colorDark: "#19092c",
-        colorLight: "#ffffff"
-      });
-
-      // Cap nhat thong tin ket qua
-      document.getElementById('resBatchCode').innerText = code;
-      document.getElementById('resProductName').innerText = name;
-      document.getElementById('resTxHash').innerText = mockTx.substring(0, 18) + "...";
-      document.getElementById('resTxHash').href = "https://sepolia.etherscan.io/tx/" + mockTx;
-      document.getElementById('createResultBox').style.display = 'block';
-
-      // Dong bo sang o tra cuu
-      document.getElementById('cpBatchCode').value = code;
-      document.getElementById('lookupCodeInput').value = code;
-
-      showToast("Khởi tạo lô hàng thành công! Mã QR đã được tạo.", "success");
     }
 
-    // ================= 2. THEM CHANG BOI DUNG VAI =================
-    function handleAddCheckpoint(e) {
+    // =========================================================================
+    // BUOC 2: THEM CHANG THEO DUNG VAI (RBAC) & TRY/CATCH
+    // =========================================================================
+    async function handleAddCheckpoint(e) {
       e.preventDefault();
       const code = document.getElementById('cpBatchCode').value.trim();
-      const role = document.getElementById('cpRoleSelect').value;
+      const roleStr = document.getElementById('cpRoleSelect').value;
       const location = document.getElementById('cpLocation').value.trim();
       const action = document.getElementById('cpAction').value.trim();
-      const uri = document.getElementById('cpUri').value.trim();
+      const uri = document.getElementById('cpMetadataURI').value.trim();
 
-      if (!DATABASE[code]) {
-        showToast("Lỗi: Không tìm thấy mã lô hàng " + code + " trên hệ thống!", "error");
-        return;
+      const btn = document.getElementById('btnSubmitCheckpoint');
+      const btnText = document.getElementById('btnSubmitCheckpointText');
+
+      btn.disabled = true;
+      btnText.innerText = "⏳ Đang ghi nhận chặng lên Blockchain...";
+
+      try {
+        let txHash = "";
+
+        if (contract && signer) {
+          // Lay bytes32 role hash tu contract
+          const roleHash = await contract[roleStr]();
+          const tx = await contract.addCheckpoint(code, roleHash, location, action, uri);
+          btnText.innerText = "⏳ Chờ xác nhận khối...";
+          const receipt = await tx.wait();
+          txHash = receipt.hash;
+        } else {
+          await new Promise(r => setTimeout(r, 900));
+          txHash = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
+        }
+
+        if (!MOCK_DATABASE[code]) {
+          MOCK_DATABASE[code] = {
+            batchCode: code,
+            productName: "Đặc sản Huế",
+            originLocation: location,
+            producer: currentAccount || "0x82d022a704706B2f144863D619D7418F8a0f19A7",
+            isVerified: false,
+            checkpoints: []
+          };
+        }
+
+        const nowStr = new Date().toLocaleString('vi-VN');
+        MOCK_DATABASE[code].checkpoints.push({
+          role: roleStr,
+          location: location,
+          action: action,
+          recorder: currentAccount || "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+          timeStr: nowStr,
+          txHash: txHash
+        });
+
+        if (roleStr === "ROLE_INSPECTOR") {
+          MOCK_DATABASE[code].isVerified = true;
+        }
+
+        showToast("✓ Đã ghi nhận chặng mới thành công bởi đúng vai trò " + roleStr + "!", "success");
+
+        // Tu dong chuyen sang xem timeline
+        setTimeout(() => {
+          document.getElementById('lookupInput').value = code;
+          switchTab('lookup');
+        }, 800);
+
+      } catch (err) {
+        console.error(err);
+        handleCustomError(err);
+      } finally {
+        btn.disabled = false;
+        btnText.innerText = "Ký Giao Dịch Ghi Nhận Chặng";
       }
-
-      const now = new Date();
-      const timeStr = now.toLocaleDateString('vi-VN') + " " + now.toLocaleTimeString('vi-VN');
-      const mockTx = "0x" + Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('');
-
-      DATABASE[code].checkpoints.push({
-        timestamp: timeStr,
-        recorder: userAddress || "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
-        role: role,
-        location: location,
-        action: action,
-        txHash: mockTx,
-        metadataURI: uri
-      });
-
-      if (role === "ROLE_INSPECTOR") {
-        DATABASE[code].isVerified = true;
-      }
-
-      showToast("Đã thêm chặng mới thành công bởi đúng vai trò " + role + "!", "success");
-
-      // Chuyen sang tab xem lich su de kiem tra timeline
-      setTimeout(() => {
-        document.getElementById('lookupCodeInput').value = code;
-        switchTab('lookup');
-      }, 700);
     }
 
-    // Demo ca gian lan (Fraudulent Test Demo)
-    function demoFraudulentAttempt() {
-      const code = document.getElementById('cpBatchCode').value.trim();
-      const fakeAttacker = "0xAttackerFakeAddress999999999999999999999";
+    // =========================================================================
+    // XU LY CHUYEN DOI CUSTOM ERRORS SANG TIENG VIET THUAN TIEN (THEO YEU CAU BUOC 2)
+    // =========================================================================
+    function handleCustomError(err) {
+      const msg = err.shortMessage || err.message || "";
       
-      showToast("⚠️ CẢNH BÁO BẢO MẬT: Ví " + fakeAttacker.substring(0, 10) + "... không có quyền ROLE_INSPECTOR! Giao dịch bị Revert với lỗi: UnauthorizedCaller.", "error");
+      if (msg.includes("UnauthorizedCaller")) {
+        showToast("⛔ LỖI PHÂN QUYỀN: Tài khoản của bạn không có vai trò hợp lệ để thực hiện thao tác này!", "error");
+      } else if (msg.includes("InsufficientBatchFee")) {
+        showToast("⛔ THIẾU PHÍ: Bạn phải nộp tối thiểu 0.001 ETH để tạo lô hàng!", "error");
+      } else if (msg.includes("BatchAlreadyExists")) {
+        showToast("⛔ TRÙNG MÃ: Mã lô hàng này đã tồn tại trên Blockchain, vui lòng chọn mã khác!", "error");
+      } else if (msg.includes("StringTooLong")) {
+        showToast("⛔ DỮ LIỆU QUÁ DÀI: Độ dài chuỗi vượt quá giới hạn tối đa chống spam gas!", "error");
+      } else if (msg.includes("StillLocked")) {
+        showToast("⛔ ĐANG KHÓA CỌC: Tiền ký quỹ vẫn đang trong thời hạn khóa 30 ngày!", "error");
+      } else if (msg.includes("ZeroStakeAmount")) {
+        showToast("⛔ SỐ TIỀN BẰNG 0: Số tiền nạp ký quỹ phải lớn hơn 0 ETH!", "error");
+      } else if (msg.includes("ACTION_REJECTED") || msg.includes("user rejected action")) {
+        showToast("⚠️ Người dùng đã hủy giao dịch trên ví MetaMask.", "info");
+      } else {
+        showToast("Lỗi giao dịch: " + msg.substring(0, 120), "error");
+      }
     }
 
-    // ================= 3. TRA CUU & HIEN THI LICH SU LÔ HANG =================
+    // Demo thu nghiem gian lan (Negative test demo)
+    function demoFraudAttempt() {
+      showToast("🛡️ CẢNH BÁO: Ví người lạ cố tình ký chứng nhận kiểm định OCOP! Giao dịch bị Revert với mã lỗi tùy biến: UnauthorizedCaller.", "error");
+    }
+
+    // =========================================================================
+    // BUOC 3: TRA CUU & HIEN THI LICH SU LÔ HANG (DOC KHONG MAT PHI)
+    // =========================================================================
     function performLookup() {
-      const code = document.getElementById('lookupCodeInput').value.trim();
-      const item = DATABASE[code];
+      const code = document.getElementById('lookupInput').value.trim();
+      const item = MOCK_DATABASE[code];
 
       if (!item) {
-        showToast("Không tìm thấy lô hàng với mã: " + code, "error");
+        showToast("Không tìm thấy thông tin cho mã lô: " + code, "error");
         return;
       }
 
-      document.getElementById('lookupProductName').innerText = item.productName;
-      document.getElementById('lookupBatchCode').innerText = item.batchCode;
-      document.getElementById('lookupCreatedAt').innerText = item.createdAt;
-      document.getElementById('lookupProducer').innerText = item.producer.substring(0, 6) + "..." + item.producer.substring(38);
+      document.getElementById('detProductName').innerText = item.productName;
+      document.getElementById('detBatchCode').innerText = item.batchCode;
+      document.getElementById('detProducer').innerText = shortenAddress(item.producer);
+      document.getElementById('detOrigin').innerText = item.originLocation;
 
-      const ocopBadge = document.getElementById('lookupOcopBadge');
+      const badge = document.getElementById('detOcopBadge');
       if (item.isVerified) {
-        ocopBadge.innerText = "✓ OCOP 4 Sao Đã Xác Thực";
-        ocopBadge.style.color = "#34d399";
-        ocopBadge.style.borderColor = "rgba(16, 185, 129, 0.4)";
-        ocopBadge.style.background = "rgba(16, 185, 129, 0.15)";
+        badge.innerText = "✓ OCOP 4 Sao Đã Xác Thực";
+        badge.style.color = "#34d399";
+        badge.style.borderColor = "rgba(16, 185, 129, 0.5)";
+        badge.style.background = "rgba(16, 185, 129, 0.2)";
       } else {
-        ocopBadge.innerText = "⏳ Đang Chờ Kiểm Định OCOP";
-        ocopBadge.style.color = "#fbbf24";
-        ocopBadge.style.borderColor = "rgba(245, 158, 11, 0.4)";
-        ocopBadge.style.background = "rgba(245, 158, 11, 0.15)";
+        badge.innerText = "⏳ Đang Chờ Kiểm Định OCOP";
+        badge.style.color = "#fbbf24";
+        badge.style.borderColor = "rgba(245, 158, 11, 0.5)";
+        badge.style.background = "rgba(245, 158, 11, 0.2)";
       }
 
-      // Render Timeline
-      const timelineEl = document.getElementById('timelineContainer');
-      timelineEl.innerHTML = '';
+      // Render timeline
+      const listEl = document.getElementById('timelineList');
+      listEl.innerHTML = "";
 
       item.checkpoints.forEach((cp, idx) => {
-        let roleClass = "role-producer";
-        let roleNameStr = "Cơ sở sản xuất";
-
-        if (cp.role === "ROLE_LOGISTICS") {
-          roleClass = "role-logistics";
-          roleNameStr = "Đơn vị vận chuyển";
-        } else if (cp.role === "ROLE_INSPECTOR") {
-          roleClass = "role-inspector";
-          roleNameStr = "Kiểm định OCOP";
-        } else if (cp.role === "ROLE_RETAILER") {
-          roleClass = "role-retailer";
-          roleNameStr = "Điểm bán lẻ";
-        }
+        let tagClass = "role-producer";
+        let roleTitle = "Cơ sở sản xuất";
+        if (cp.role === "ROLE_INSPECTOR") { tagClass = "role-inspector"; roleTitle = "Kiểm định OCOP"; }
+        else if (cp.role === "ROLE_LOGISTICS") { tagClass = "role-logistics"; roleTitle = "Đơn vị vận chuyển"; }
+        else if (cp.role === "ROLE_RETAILER") { tagClass = "role-retailer"; roleTitle = "Điểm bán lẻ"; }
 
         const itemHtml = `
           <div class="timeline-item">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
               <div class="timeline-header">
-                <span class="role-tag ${roleClass}">Chặng ${idx}: ${roleNameStr}</span>
-                <span class="timeline-time">${cp.timestamp}</span>
+                <span class="role-tag ${tagClass}">Chặng ${idx + 1}: ${roleTitle}</span>
+                <span class="timeline-time">${cp.timeStr}</span>
               </div>
               <div class="timeline-action">${cp.action}</div>
               <div class="timeline-location">📍 <strong>Địa điểm:</strong> ${cp.location}</div>
               <div class="timeline-footer">
-                <div>Ví xác thực: <code>${cp.recorder.substring(0, 6)}...${cp.recorder.substring(cp.recorder.length - 4)}</code></div>
-                <div>TxHash: <a href="https://sepolia.etherscan.io/tx/${cp.txHash}" target="_blank" class="hash-link">${cp.txHash.substring(0, 14)}...</a></div>
+                <div>Ví ký: <code>${shortenAddress(cp.recorder)}</code></div>
+                <div>TxHash: <a href="https://sepolia.etherscan.io/tx/${cp.txHash}" target="_blank" class="hash-link">${shortenAddress(cp.txHash)}</a></div>
               </div>
             </div>
           </div>
         `;
-        timelineEl.insertAdjacentHTML('beforeend', itemHtml);
+        listEl.insertAdjacentHTML('beforeend', itemHtml);
       });
     }
 
-    function quickSelectBatch(code) {
-      document.getElementById('lookupCodeInput').value = code;
+    function quickSelect(code) {
+      document.getElementById('lookupInput').value = code;
       performLookup();
     }
 
-    function updateProductDetails(val) {
-      if (val.includes("Mè xửng")) {
-        document.getElementById('originInput').value = "20 Chi Lăng, Phường Phú Hậu, TP Huế";
-      } else if (val.includes("Tôm chua")) {
-        document.getElementById('originInput').value = "21 Đặng Tất, Phường An Hòa, TP Huế";
-      } else if (val.includes("Trà Cung Đình")) {
-        document.getElementById('originInput').value = "24 Nguyễn Huệ, Phường Vĩnh Ninh, TP Huế";
-      } else if (val.includes("Dầu Tràm")) {
-        document.getElementById('originInput').value = "Làng nghề Dầu tràm Lộc Thủy, Huyện Phú Lộc, TT Huế";
-      } else if (val.includes("Nón")) {
-        document.getElementById('originInput').value = "Làng Nón Tây Hồ, Xã Phú Hồ, Huyện Phú Vang, TT Huế";
-      }
+    function viewCreatedBatch() {
+      const code = document.getElementById('resBatchCode').innerText;
+      document.getElementById('lookupInput').value = code;
+      switchTab('lookup');
     }
 
-    function suggestCheckpointActions(role) {
-      if (role === "ROLE_LOGISTICS") {
-        document.getElementById('cpLocation').value = "Kho Ga Huế, Phường Đúc, TP Huế";
-        document.getElementById('cpAction').value = "Đóng kiện bảo quản, xuất kho vận chuyển tàu hỏa đi Hà Nội";
-      } else if (role === "ROLE_INSPECTOR") {
-        document.getElementById('cpLocation').value = "Chi cục Quản lý Chất lượng Nông Lâm Thủy sản TT Huế";
-        document.getElementById('cpAction').value = "Kiểm nghiệm vi sinh và cấp giấy chứng nhận OCOP 4 sao";
-      } else if (role === "ROLE_RETAILER") {
-        document.getElementById('cpLocation').value = "Cửa hàng Đặc sản Huế Quà Cố Đô, Hàng Bông, Hà Nội";
-        document.getElementById('cpAction').value = "Nhập kho điểm bán lẻ, niêm yết sẵn sàng phục vụ khách mua";
-      } else if (role === "ROLE_PRODUCER") {
-        document.getElementById('cpLocation').value = "Xưởng sản xuất tại Huế";
-        document.getElementById('cpAction').value = "Hoàn thiện đóng gói màng co chống ẩm, dán tem QR";
-      }
-    }
-
-    function copyQRLink() {
+    function copyTraceUrl() {
       const code = document.getElementById('resBatchCode').innerText;
       const url = window.location.origin + window.location.pathname + "?batch=" + encodeURIComponent(code);
       navigator.clipboard.writeText(url).then(() => {
-        showToast("Đã sao chép liên kết quét QR vào bộ nhớ tạm!", "success");
+        showToast("✓ Đã sao chép liên kết truy xuất vào bộ nhớ tạm!", "success");
       });
     }
 
-    function showToast(msg, type) {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toastMessage');
-      toastMsg.innerText = msg;
-      toast.style.borderLeftColor = type === 'error' ? '#ef4444' : '#f59e0b';
-      toast.style.display = 'block';
-
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 4000);
+    function onProductChange(val) {
+      if (val.includes("Mè xửng")) {
+        document.getElementById('originLocation').value = "20 Chi Lăng, Phường Phú Hậu, TP Huế";
+        document.getElementById('metadataURI').value = "ipfs://QmThienHuongHeritageOriginCertified2026";
+      } else if (val.includes("Tôm chua")) {
+        document.getElementById('originLocation').value = "21 Đặng Tất, Phường An Hòa, TP Huế";
+        document.getElementById('metadataURI').value = "ipfs://QmTomChuaTamGiangBatch008";
+      } else if (val.includes("Trà Cung Đình")) {
+        document.getElementById('originLocation').value = "24 Nguyễn Huệ, Phường Vĩnh Ninh, TP Huế";
+        document.getElementById('metadataURI').value = "ipfs://QmTraCungDinhDucPhuongOCOP5Star";
+      } else if (val.includes("Tràm")) {
+        document.getElementById('originLocation').value = "Làng nghề Dầu tràm Lộc Thủy, Phú Lộc, TT Huế";
+        document.getElementById('metadataURI').value = "ipfs://QmDauTramLocThuyStandard2026";
+      } else if (val.includes("Nón")) {
+        document.getElementById('originLocation').value = "Làng Nón Tây Hồ, Xã Phú Hồ, Phú Vang, TT Huế";
+        document.getElementById('metadataURI').value = "ipfs://QmNonBaiThoTayHoTraditional";
+      }
     }
 
-    // Auto-check URL query parameters on load (e.g., ?batch=HL-MEXUNG-2026-001)
+    function onRoleChange(role) {
+      if (role === "ROLE_LOGISTICS") {
+        document.getElementById('cpLocation').value = "Kho Ga Huế, Phường Đúc, TP Huế";
+        document.getElementById('cpAction').value = "Đóng kiện bảo quản chống ẩm, bàn giao tàu Thống Nhất SE2 đi Hà Nội";
+        document.getElementById('cpMetadataURI').value = "ipfs://QmGaHueLogisticsManifest2026";
+      } else if (role === "ROLE_INSPECTOR") {
+        document.getElementById('cpLocation').value = "Chi cục Quản lý Chất lượng Nông Lâm Thủy sản TT Huế";
+        document.getElementById('cpAction').value = "Kiểm nghiệm vi sinh và cấp giấy chứng nhận OCOP 4 sao tỉnh TT Huế";
+        document.getElementById('cpMetadataURI').value = "ipfs://QmOCOPInspectionCertified2026";
+      } else if (role === "ROLE_RETAILER") {
+        document.getElementById('cpLocation').value = "Cửa hàng Đặc sản Huế Quà Cố Đô, Hàng Bông, Hà Nội";
+        document.getElementById('cpAction').value = "Nhập kho điểm bán lẻ, niêm yết tem truy xuất sẵn sàng phục vụ khách";
+        document.getElementById('cpMetadataURI').value = "ipfs://QmRetailStoreHanoiReceipt2026";
+      } else if (role === "ROLE_PRODUCER") {
+        document.getElementById('cpLocation').value = "Cơ sở sản xuất tại Huế";
+        document.getElementById('cpAction').value = "Kiểm định nội bộ cơ sở, dán tem QR lên bao bì xuất xưởng";
+        document.getElementById('cpMetadataURI').value = "ipfs://QmInternalQualityCheck2026";
+      }
+    }
+
+    function showToast(msg, type = "info") {
+      const toast = document.getElementById('toast');
+      const content = document.getElementById('toastContent');
+      content.innerText = msg;
+      
+      if (type === 'error') {
+        toast.style.borderLeftColor = "#ef4444";
+      } else if (type === 'success') {
+        toast.style.borderLeftColor = "#10b981";
+      } else {
+        toast.style.borderLeftColor = "#f59e0b";
+      }
+
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 4200);
+    }
+
+    // Tu dong doc URL tham so ?batch= khi mo trang web tren dien thoai
     window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const batchParam = urlParams.get('batch');
-      if (batchParam) {
-        document.getElementById('lookupCodeInput').value = batchParam;
+      const params = new URLSearchParams(window.location.search);
+      const batchCode = params.get('batch');
+      if (batchCode) {
+        document.getElementById('lookupInput').value = batchCode;
         switchTab('lookup');
       } else {
         performLookup();

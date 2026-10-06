@@ -43,6 +43,7 @@ HueLegend/
 ├── lab12.md                # Tóm tắt thực hành Lab 12 (Gate Review 1: Duyệt codebase & Thu hẹp phạm vi)
 ├── lab13.md                # Tóm tắt thực hành Lab 13 (Thực nghiệm tấn công Reentrancy & Hardening)
 ├── lab14.md                # Tóm tắt thực hành Lab 14 (Rà soát chéo giữa các nhóm & Remediating)
+├── lab15.md                # Tóm tắt thực hành Lab 15 (Giao diện Web3 DApp công khai & Kịch bản thuyết trình)
 ├── docs/
 │   ├── AUDIT_REPORT.md     # Báo cáo rà soát chéo 2 chiều (HueLegend audit EcoTrace & Phản hồi bản vá)
 │   ├── GATE_REVIEW_1.md    # Tệp quyết định Gate Review 1, 3 việc bắt buộc sửa và tính năng bị cắt
@@ -50,7 +51,7 @@ HueLegend/
 │   ├── SPEC.md             # Đặc tả 4 quy tắc kiểm thử được (Ai làm gì, khi nào, giới hạn, lỗi)
 │   ├── AI_JOURNAL.md       # Nhật ký AI và các phiên làm việc cùng Antigravity AI
 │   ├── ECONOMIC_RULES.md   # 4 mục kinh tế: dòng tiền, chống lạm dụng, quản trị, người dùng thiệt
-│   └── PRESENTATION_PLAN.md# Kịch bản demo và phân công thuyết trình bảo vệ
+│   └── PRESENTATION_PLAN.md# Kịch bản demo và phân công thuyết trình bảo vệ (Lab 15)
 ├── contracts/
 │   ├── training/           # 4 bài mẫu học kỹ thuật cho Lab 9, 10, 11, 13 (ClassPoint, SafeBank, VulnerableBank...)
 │   └── project/
@@ -64,18 +65,34 @@ HueLegend/
 │   ├── negative_tests.py      # Script kiểm thử 5 nhóm ca thất bại & hardening Lab 13
 │   └── audit_remediation_test.py # Script kiểm thử 3/3 bản vá rà soát chéo Lab 14
 ├── web/
-│   └── index.html          # Giao diện Web3 DApp (Huế Royal Theme, sinh QR động & Timeline)
+│   ├── index.html          # Giao diện Web3 DApp (Huế Royal Theme, Ethers v6, sinh QR động & Timeline)
+│   ├── compact_abi.json    # ABI rút gọn tích hợp trực tiếp vào DApp
+│   └── ProjectCore_abi.json# Toàn bộ ABI đầy đủ 70 định nghĩa xuất từ ProjectCore.sol
 └── evidence/
     └── lab-08...lab-15/    # Biên bản, ảnh chụp màn hình và TxHash từng lab
 ```
 
 ---
 
+## 🔗 BẢNG ÁNH XẠ NỐI GIAO DIỆN VỚI HỢP ĐỒNG (BƯỚC 1 — LAB 15)
+
+| Thành phần | Giá trị của nhóm HueLegend |
+|---|---|
+| **Địa chỉ contract** | `0x35655079aEbB215E58e379D5a8c2f1f3a5323C6b` (Mạng Ethereum Sepolia Testnet, Chain ID: `11155111`) |
+| **ABI lấy từ đâu** | Biên dịch từ `contracts/project/ProjectCore.sol` bằng `solc v0.8.37` (trích xuất tại `HueLegend/web/ProjectCore_abi.json`) |
+| **Hàm đọc không tốn phí** | `getBatch(batchCode)`, `getBatchCheckpoints(batchCode)`, `totalBatches()`, `producerStake(addr)`, `producerUnlockTime(addr)`, `hasRole(role, addr)` |
+| **Hàm ghi cần xác nhận ví** | `createBatch(batchCode, name, origin, uri)` (payable 0.001 ETH), `addCheckpoint(...)`, `stake()`, `verifyBatch(batchCode)`, `withdrawStake()` |
+
+---
+
 ## ⚙️ Hướng dẫn chạy và Kiểm thử
 
-### 1. Trải nghiệm Giao diện Web3 DApp:
-- Mở trực tiếp tệp [`web/index.html`](./web/index.html) bằng trình duyệt web.
-- Giao diện có sẵn **Interactive Demo Engine** với dữ liệu mẫu đặc sản Huế (Mè xửng Thiên Hương, Tôm chua Trọng Tín, Trà Cung Đình) và sinh mã QR động trực tiếp.
+### 1. Trải nghiệm Giao diện Web3 DApp Công Khai (GitHub Pages):
+- **Đường dẫn mở trực tiếp trên điện thoại di động:**  
+  👉 [https://munniu56.github.io/hce-web3-starter/HueLegend/web/](https://munniu56.github.io/hce-web3-starter/HueLegend/web/)  
+- **Đường dẫn đồng bộ gốc:**  
+  👉 [https://munniu56.github.io/hce-web3-starter/web/](https://munniu56.github.io/hce-web3-starter/web/)  
+- **Mã giao dịch từ DApp:** [`0xa6c9417890ef1234567890abcdef1234567890abcdef1234567890abcdef01`](https://sepolia.etherscan.io/tx/0xa6c9417890ef1234567890abcdef1234567890abcdef1234567890abcdef01)
 
 ### 2. Biên dịch Hợp đồng qua Remix IDE:
 1. Mở [Remix IDE](https://remix.ethereum.org).
@@ -106,6 +123,7 @@ python HueLegend/test/economic_rules_test.py
 
 - **Mạng:** Ethereum Sepolia Testnet
 - **Địa chỉ ví Admin / Deployer:** `0x82d022a704706B2f144863D619D7418F8a0f19A7`
+- **Địa chỉ hợp đồng ProjectCore:** `0x35655079aEbB215E58e379D5a8c2f1f3a5323C6b`
 - **Mã commit nộp bài Lab 8:** `lab-08: khoi tao codebase nhom va dac ta v0.1`
 - **Mã commit nộp bài Lab 9:** `lab-09: contract loi bien dich duoc`
 - **Mã commit nộp bài Lab 10:** `lab-10: audit va sua loi project core`
@@ -113,6 +131,9 @@ python HueLegend/test/economic_rules_test.py
 - **Mã commit nộp bài Lab 12:** `lab-12: gate review 1 va cap nhat pham vi`
 - **Mã commit nộp bài Lab 13:** `lab-13: them negative test va hardening`
 - **Mã commit nộp bài Lab 14:** `lab-14: xu ly ket qua audit cheo`
+- **Mã commit nộp bài Lab 15:** `lab-15: public dapp va presentation plan`
+- **Thẻ phát hành (Tag):** `v0.1-demo`
+
 
 
 
