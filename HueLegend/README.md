@@ -40,10 +40,12 @@ HueLegend/
 ├── lab09.md                # Tóm tắt thực hành Lab 9 (Két khóa thời gian & Gas profiling)
 ├── lab10.md                # Tóm tắt thực hành Lab 10 (Audit mã nguồn AI & sửa 4 lỗi)
 ├── lab11.md                # Tóm tắt thực hành Lab 11 (Cài quy tắc kinh tế & Test 100%)
+├── lab12.md                # Tóm tắt thực hành Lab 12 (Gate Review 1: Duyệt codebase & Thu hẹp phạm vi)
 ├── docs/
-│   ├── PROJECT_PLAN.md     # Kế hoạch dự án, phân công vai trò (xoay vai) và mốc công việc
+│   ├── GATE_REVIEW_1.md    # Tệp quyết định Gate Review 1, 3 việc bắt buộc sửa và tính năng bị cắt
+│   ├── PROJECT_PLAN.md     # Kế hoạch dự án v0.4, phân công xoay vai Lab 12–15 và mốc công việc
 │   ├── SPEC.md             # Đặc tả 4 quy tắc kiểm thử được (Ai làm gì, khi nào, giới hạn, lỗi)
-│   ├── AI_JOURNAL.md       # Nhật ký AI và 5 phản biện lạm dụng kèm biện pháp xử lý rủi ro
+│   ├── AI_JOURNAL.md       # Nhật ký AI và các phiên làm việc cùng Antigravity AI
 │   ├── ECONOMIC_RULES.md   # 4 mục kinh tế: dòng tiền, chống lạm dụng, quản trị, người dùng thiệt
 │   └── PRESENTATION_PLAN.md# Kịch bản demo và phân công thuyết trình bảo vệ
 ├── contracts/
@@ -53,7 +55,8 @@ HueLegend/
 ├── test/
 │   ├── ProjectCore.test.js # Bộ kiểm thử tự động (bao gồm ca kiểm thử gian lận TC-03)
 │   ├── ClassPoint.test.js  # Kiểm thử bài mẫu ClassPoint OpenZeppelin 5 (feeBps, maxHolding)
-│   └── economic_rules_test.py # Script kiểm thử tự động 7/7 ca kinh tế chuẩn AGENTS.md
+│   ├── economic_rules_test.py # Script kiểm thử tự động 7/7 ca kinh tế chuẩn AGENTS.md
+│   └── repo_health_check.js   # Script kiểm tra tự động 5 tiêu chí sức khỏe repo Gate Review 1
 ├── web/
 │   └── index.html          # Giao diện Web3 DApp (Huế Royal Theme, sinh QR động & Timeline)
 └── evidence/
@@ -73,8 +76,12 @@ HueLegend/
 2. Tải tệp [`contracts/project/ProjectCore.sol`](./contracts/project/ProjectCore.sol) lên Remix.
 3. Chọn compiler `0.8.20`, chọn Deploy môi trường `Injected Provider - MetaMask` (Mạng Sepolia Testnet).
 
-### 3. Chạy ca kiểm thử tự động:
+### 3. Chạy ca kiểm thử tự động & Kiểm tra sức khỏe repo:
 ```bash
+# Kiểm tra tự động 5 tiêu chí sức khỏe repo Gate Review 1:
+node HueLegend/test/repo_health_check.js
+
+# Chạy bộ kiểm thử quy tắc kinh tế:
 python HueLegend/test/economic_rules_test.py
 ```
 
@@ -88,4 +95,6 @@ python HueLegend/test/economic_rules_test.py
 - **Mã commit nộp bài Lab 9:** `lab-09: contract loi bien dich duoc`
 - **Mã commit nộp bài Lab 10:** `lab-10: audit va sua loi project core`
 - **Mã commit nộp bài Lab 11:** `lab-11: cai quy tac kinh te va test`
+- **Mã commit nộp bài Lab 12:** `lab-12: gate review 1 va cap nhat pham vi`
+
 

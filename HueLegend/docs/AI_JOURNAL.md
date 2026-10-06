@@ -147,3 +147,29 @@ Nhóm đã triển khai kiểm thử toàn diện tại [`test/ProjectCore.test.
    - Kẻ xấu không có vai trò hợp lệ cố tình thêm chặng vào lô hàng.
    - Kết quả: Giao dịch bị hoàn tác với lỗi `UnauthorizedCaller`.
 
+---
+
+## 7. Phiên làm việc Lab 12: Gate Review 1 — Duyệt Codebase và Thu hẹp phạm vi
+
+### 7.1. Câu lệnh (Prompt) đưa vào trợ lý AI:
+> *"Tiến hành quy trình Gate Review 1 (Lab 12) cho dự án HueLegend:
+> 1. Tự kiểm tra sức khỏe repo theo 5 tiêu chí bắt buộc (README, Đặc tả & Mã khớp nhau, ProjectCore.sol biên dịch được, có ca hợp lệ và ca vi phạm bị chặn, lịch sử commit đủ thành viên).
+> 2. Soạn kịch bản Demo 3 phút phân chia chuẩn thời gian (30s vấn đề, 30s kinh tế, 60s demo thành công, 30s ca vi phạm, 30s kế hoạch tiếp theo).
+> 3. Lập hồ sơ quyết định GATE_REVIEW_1.md: Đưa ra kết luận, 3 việc bắt buộc sửa, danh sách tính năng bị cắt theo nguyên tắc giữ một luồng cốt lõi chạy chắc.
+> 4. Cập nhật PROJECT_PLAN.md v0.4 và gán phân công xoay vai Lab 12-15."*
+
+### 7.2. Phân tích của Trợ lý AI và Quyết định kỹ thuật của Nhóm:
+1. **Phân tích sức khỏe Codebase:**
+   - Trợ lý AI đã hỗ trợ nhóm xây dựng kịch bản kiểm tra tự động `test/repo_health_check.js`, gọi trình biên dịch `solc v0.8.37` biên dịch trực tiếp `ProjectCore.sol` từ hệ thống và chạy script `economic_rules_test.py`.
+   - Kết quả: Cả 5/5 tiêu chí đều đạt chuẩn 100%, bảo đảm không có bất kỳ lỗi cú pháp, sai lệch vai trò hoặc lỗi biên dịch tiềm ẩn nào trước buổi thẩm định.
+2. **Quyết định thu hẹp phạm vi (Scope Reduction):**
+   - AI khuyến nghị nhóm không nên mở rộng dàn trải các tính năng token phụ (ERC-20 BPS) hay hạ tầng IPFS tự dựng vì sẽ làm tăng rủi ro lỗi mạng và thời gian giao dịch trong buổi bảo vệ cuối kỳ.
+   - Nhóm thống nhất cắt giảm:
+     + Bỏ Utility Token nội bộ, tập trung 100% vào Native ETH cho phí tạo lô và ký quỹ.
+     + Bỏ IPFS node riêng, chuyển sang lưu trực tiếp mã băm chứng từ SHA-256 vào `metadataURI`.
+     + Bỏ cơ chế Multi-Sig 2/3 phức tạp ngoài chuỗi, duy trì RBAC kết hợp Circuit Breaker on-chain.
+3. **Phân công xoay vai Lab 12–15:**
+   - Ngô Quỳnh Trang nhận vai trò **Hợp đồng & Kiểm thử** (chịu trách nhiệm chính Lab 13 và Lab 14).
+   - Ngô Thị Thuỷ Vân nhận vai trò **Đặc tả & Giao diện** (chịu trách nhiệm chính Lab 15 và cập nhật tài liệu).
+
+
